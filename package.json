@@ -1,0 +1,16 @@
+{
+    "name": "@acrossai-co/main-menu",
+    "version": "1.0.0",
+    "description": "AcrossAI Admin Dashboard parent menu + Settings page Composer package",
+    "private": true,
+    "scripts": {
+        "build": "wp-scripts build",
+        "start": "wp-scripts start",
+        "format": "wp-scripts format",
+        "lint:js": "wp-scripts lint-js",
+        "packages-update": "wp-scripts packages-update"
+    },
+    "devDependencies": {
+        "@wordpress/scripts": "^30.0"
+    }
+}
