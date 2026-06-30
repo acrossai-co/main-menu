@@ -17,16 +17,20 @@ class MenuRegistrar {
 	/** @var string */
 	private $settings_slug;
 
+	/** @var DashboardRenderer */
+	private $dashboard_renderer;
+
 	/** @var PageRenderer */
-	private $renderer;
+	private $settings_renderer;
 
 	/** @var string|null Hook suffix returned by add_submenu_page(). */
 	private $hook_suffix = null;
 
-	public function __construct( string $parent_slug, string $settings_slug, PageRenderer $renderer ) {
-		$this->parent_slug   = $parent_slug;
-		$this->settings_slug = $settings_slug;
-		$this->renderer      = $renderer;
+	public function __construct( string $parent_slug, string $settings_slug, DashboardRenderer $dashboard_renderer, PageRenderer $settings_renderer ) {
+		$this->parent_slug        = $parent_slug;
+		$this->settings_slug      = $settings_slug;
+		$this->dashboard_renderer = $dashboard_renderer;
+		$this->settings_renderer  = $settings_renderer;
 	}
 
 	public function register_parent(): void {
@@ -35,7 +39,7 @@ class MenuRegistrar {
 			__( 'AcrossAI', 'acrossai' ),
 			'manage_options',
 			$this->parent_slug,
-			[ $this->renderer, 'render' ]
+			[ $this->dashboard_renderer, 'render' ]
 		);
 	}
 
@@ -46,7 +50,7 @@ class MenuRegistrar {
 			__( 'Settings', 'acrossai' ),
 			'manage_options',
 			$this->settings_slug,
-			[ $this->renderer, 'render' ]
+			[ $this->settings_renderer, 'render' ]
 		);
 	}
 

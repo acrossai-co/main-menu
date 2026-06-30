@@ -25,12 +25,21 @@ class SettingsPage {
 	/** @var MenuRegistrar */
 	private $menu_registrar;
 
+	/** @var DashboardRenderer */
+	private $dashboard_renderer;
+
 	/** @var PageRenderer */
-	private $renderer;
+	private $settings_renderer;
 
 	public function __construct() {
-		$this->renderer       = new PageRenderer( self::SETTINGS_SLUG );
-		$this->menu_registrar = new MenuRegistrar( self::PARENT_SLUG, self::SETTINGS_SLUG, $this->renderer );
+		$this->dashboard_renderer = new DashboardRenderer();
+		$this->settings_renderer  = new PageRenderer( self::SETTINGS_SLUG );
+		$this->menu_registrar     = new MenuRegistrar(
+			self::PARENT_SLUG,
+			self::SETTINGS_SLUG,
+			$this->dashboard_renderer,
+			$this->settings_renderer
+		);
 
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_parent' ] );
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_settings_submenu' ], 1000 );
