@@ -85,6 +85,82 @@ add_action( 'admin_init', function () {
 
 That's the entire extension. No JS, no enqueue, no PHP routing — just standard WP hooks. The Settings page will display Plugin A's section automatically.
 
+## Tabs
+
+The Settings page has two rendering modes:
+
+- **Flat** — no plugin hooks the `acrossai_settings_tabs` filter. The page renders a single form (today's behavior); use `'acrossai-settings'` as the page slug for `add_settings_section` / `add_settings_field`.
+- **Tabbed** — any plugin registers at least one tab. The page renders a `nav-tab-wrapper` bar; each tab has its own form and Save button. Sections must target a tab's page slug (see below).
+
+### Registering a tab
+
+Hook the `acrossai_settings_tabs` filter and append a tab entry:
+
+```php
+add_filter( 'acrossai_settings_tabs', function ( $tabs ) {
+    $tabs[] = [
+        'slug'     => 'providers',
+        'label'    => __( 'Providers', 'plugin-a' ),
+        'priority' => 10,
+    ];
+    return $tabs;
+} );
+```
+
+Tab entry shape:
+
+| Key | Required | Type | Default | Notes |
+|---|---|---|---|---|
+| `slug` | yes | string | — | Lowercase `[a-z0-9_-]` (passed through `sanitize_key`). Used in the `?tab=` URL and the per-tab page slug. |
+| `label` | yes | string | — | Already-translated label. Rendered with `esc_html`. |
+| `priority` | no | int | `10` | Lower = earlier. Ties broken by registration order. |
+| `capability` | no | string | `'manage_options'` | Per-tab capability gate. Tabs the user can't satisfy are hidden. |
+
+Duplicate slugs: first registration wins. With `WP_DEBUG` on, subsequent duplicates trigger `_doing_it_wrong()`.
+
+### Adding sections/fields to a tab
+
+Use `SettingsPage::tab_page_slug( 'your-tab-slug' )` as the `$page` argument:
+
+```php
+add_action( 'admin_init', function () {
+    $page = \AcrossAI_Main_Menu\SettingsPage::tab_page_slug( 'providers' );
+
+    register_setting(
+        'acrossai-settings',           // option_group — always the shared slug, regardless of tab
+        'plugin_a_api_key',
+        [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => '' ]
+    );
+
+    add_settings_section(
+        'plugin_a_providers',
+        __( 'Providers', 'plugin-a' ),
+        function () { echo '<p>' . esc_html__( 'Configure providers.', 'plugin-a' ) . '</p>'; },
+        $page
+    );
+
+    add_settings_field(
+        'plugin_a_api_key',
+        __( 'API Key', 'plugin-a' ),
+        function () {
+            printf(
+                '<input type="text" name="plugin_a_api_key" value="%s" class="regular-text" />',
+                esc_attr( get_option( 'plugin_a_api_key', '' ) )
+            );
+        },
+        $page,
+        'plugin_a_providers'
+    );
+} );
+```
+
+Notes:
+
+- **`option_group` stays `acrossai-settings` in tabbed mode.** The shared option_group is what makes `register_setting`, the nonce, and the save flow work — regardless of which tab a section lives under. Only the `$page` argument changes per tab.
+- **One Save button per tab.** Switching tabs without saving discards in-progress changes (standard WP admin pattern).
+- **Active tab persistence.** The active tab survives the Save round-trip via `_wp_http_referer` — no extra wiring needed.
+- **Backward compatibility.** If no plugin hooks `acrossai_settings_tabs`, the flat-page example earlier in this README keeps working unchanged. Once any plugin registers a tab, sections still attached to the bare `'acrossai-settings'` slug are not rendered — migrate them under a tab.
+
 ## How the page composes across plugins
 
 `do_settings_sections( 'acrossai-settings' )` iterates every section registered against that page slug, in registration order. So:
@@ -112,6 +188,7 @@ add_action( 'admin_init', 'plugin_c_register_settings', 30 );  // third
 | `\AcrossAI_Main_Menu\SettingsPage` | Entrypoint. Construct once per request: `new SettingsPage();`. Safe to construct from every consumer plugin — jetpack-autoloader picks one copy to boot. |
 | `\AcrossAI_Main_Menu\SettingsPage::PARENT_SLUG` | `'acrossai'` — the parent menu slug. |
 | `\AcrossAI_Main_Menu\SettingsPage::SETTINGS_SLUG` | `'acrossai-settings'` — the Settings submenu slug, page slug, and option_group. |
+| `\AcrossAI_Main_Menu\SettingsPage::tab_page_slug( string $tab_slug )` | Returns the per-tab page slug (e.g. `'acrossai-settings-providers'`) to pass to `add_settings_section` / `add_settings_field` / `do_settings_sections` in tabbed mode. |
 
 ## Notes for multi-plugin installs
 

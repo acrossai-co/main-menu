@@ -22,6 +22,15 @@ class SettingsPage {
 	const PARENT_SLUG   = 'acrossai';
 	const SETTINGS_SLUG = 'acrossai-settings';
 
+	/**
+	 * Returns the page slug consumer plugins should pass to
+	 * add_settings_section() / add_settings_field() / do_settings_sections()
+	 * when targeting a specific tab on the shared Settings page.
+	 */
+	public static function tab_page_slug( string $tab_slug ): string {
+		return self::SETTINGS_SLUG . '-' . sanitize_key( $tab_slug );
+	}
+
 	/** @var MenuRegistrar */
 	private $menu_registrar;
 
