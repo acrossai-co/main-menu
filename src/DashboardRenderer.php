@@ -216,9 +216,9 @@ class DashboardRenderer {
 				<h1><?php esc_html_e( 'Bring real AI infrastructure to your WordPress site.', 'acrossai' ); ?></h1>
 				<p><?php esc_html_e( 'AcrossAI connects your site to language models, exposes governed tools, and orchestrates context through the Model Context Protocol — all from the dashboard, no custom code required. Three focused plugins, one cohesive system.', 'acrossai' ); ?></p>
 				<div class="acai-chip-row">
-					<span class="acai-chip"><?php esc_html_e( 'Connect any model', 'acrossai' ); ?></span>
-					<span class="acai-chip"><?php esc_html_e( 'Wire up MCP servers', 'acrossai' ); ?></span>
 					<span class="acai-chip"><?php esc_html_e( 'Govern AI abilities', 'acrossai' ); ?></span>
+					<span class="acai-chip"><?php esc_html_e( 'Wire up MCP servers', 'acrossai' ); ?></span>
+					<span class="acai-chip"><?php esc_html_e( 'Connect any model', 'acrossai' ); ?></span>
 				</div>
 			</div>
 		</section>
@@ -233,17 +233,17 @@ class DashboardRenderer {
 
 				<article class="acai-card">
 					<div class="acai-card-icon">
-						<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5L12 3z"/><path d="M3 12.5 12 17l9-4.5"/><path d="M3 17 12 21.5 21 17"/></svg>
+						<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 13.5h6l-1 8.5L20 10.5h-6l1-8.5z"/></svg>
 					</div>
-					<h3><?php esc_html_e( 'Model Manager', 'acrossai' ); ?></h3>
-					<div class="acai-card-kicker"><?php esc_html_e( 'Providers & keys', 'acrossai' ); ?></div>
-					<p><?php esc_html_e( 'Register AI providers in one place. Store API keys for OpenAI, Anthropic, Google and more, set defaults, and route requests across models — so every AcrossAI plugin shares the same brain.', 'acrossai' ); ?></p>
+					<h3><?php esc_html_e( 'Abilities Manager', 'acrossai' ); ?></h3>
+					<div class="acai-card-kicker"><?php esc_html_e( 'Tools & permissions', 'acrossai' ); ?></div>
+					<p><?php esc_html_e( 'Define exactly what your AI is allowed to do. Turn WordPress functions into governed, permission-aware abilities your models can call — with clear control over scope and safety.', 'acrossai' ); ?></p>
 					<div class="acai-card-links">
-						<a class="acai-link-primary" href="https://wordpress.org/plugins/acrossai-model-manager/" target="_blank" rel="noopener">
+						<a class="acai-link-primary" href="https://wordpress.org/plugins/acrossai-abilities-manager/" target="_blank" rel="noopener">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM3.6 12a8.4 8.4 0 0 1 .73-3.42l4.02 11A8.4 8.4 0 0 1 3.6 12zm8.4 8.4c-.82 0-1.62-.12-2.37-.34l2.52-7.32 2.58 7.07.06.13a8.37 8.37 0 0 1-2.79.46zm1.16-12.34c.5-.03.96-.08.96-.08.45-.06.4-.72-.05-.69 0 0-1.36.1-2.23.1-.82 0-2.2-.1-2.2-.1-.46-.03-.51.66-.06.69 0 0 .43.05.88.08l1.3 3.55-1.82 5.46-3.03-9.01c.5-.03.96-.08.96-.08.45-.06.4-.72-.05-.69 0 0-1.36.1-2.23.1l-.53-.01A8.4 8.4 0 0 1 16.9 4.92c-.03 0-.06-.01-.1-.01-.82 0-1.4.71-1.4 1.48 0 .69.4 1.27.82 1.96.32.56.69 1.27.69 2.3 0 .72-.27 1.55-.64 2.7l-.84 2.8-3.03-9.02zm6.51 1.74a8.4 8.4 0 0 1-3.18 11.3l2.58-7.46c.48-1.2.64-2.17.64-3.02 0-.31-.02-.6-.06-.86z"/></svg>
 							WordPress.org
 						</a>
-						<a class="acai-link-muted" href="https://github.com/acrossai-co/" target="_blank" rel="noopener">
+						<a class="acai-link-muted" href="https://github.com/acrossai-co/acrossai-core-abilities/" target="_blank" rel="noopener">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.6.5.5 5.6.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.6 18 4.9 18 4.9c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.6 18.4.5 12 .5z"/></svg>
 							GitHub
 						</a>
@@ -271,13 +271,13 @@ class DashboardRenderer {
 
 				<article class="acai-card">
 					<div class="acai-card-icon">
-						<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 13.5h6l-1 8.5L20 10.5h-6l1-8.5z"/></svg>
+						<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5L12 3z"/><path d="M3 12.5 12 17l9-4.5"/><path d="M3 17 12 21.5 21 17"/></svg>
 					</div>
-					<h3><?php esc_html_e( 'Abilities Manager', 'acrossai' ); ?></h3>
-					<div class="acai-card-kicker"><?php esc_html_e( 'Tools & permissions', 'acrossai' ); ?></div>
-					<p><?php esc_html_e( 'Define exactly what your AI is allowed to do. Turn WordPress functions into governed, permission-aware abilities your models can call — with clear control over scope and safety.', 'acrossai' ); ?></p>
+					<h3><?php esc_html_e( 'Model Manager', 'acrossai' ); ?></h3>
+					<div class="acai-card-kicker"><?php esc_html_e( 'Providers & keys', 'acrossai' ); ?></div>
+					<p><?php esc_html_e( 'Register AI providers in one place. Store API keys for OpenAI, Anthropic, Google and more, set defaults, and route requests across models — so every AcrossAI plugin shares the same brain.', 'acrossai' ); ?></p>
 					<div class="acai-card-links">
-						<a class="acai-link-primary" href="https://wordpress.org/plugins/acrossai-abilities-manager/" target="_blank" rel="noopener">
+						<a class="acai-link-primary" href="https://wordpress.org/plugins/acrossai-model-manager/" target="_blank" rel="noopener">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM3.6 12a8.4 8.4 0 0 1 .73-3.42l4.02 11A8.4 8.4 0 0 1 3.6 12zm8.4 8.4c-.82 0-1.62-.12-2.37-.34l2.52-7.32 2.58 7.07.06.13a8.37 8.37 0 0 1-2.79.46zm1.16-12.34c.5-.03.96-.08.96-.08.45-.06.4-.72-.05-.69 0 0-1.36.1-2.23.1-.82 0-2.2-.1-2.2-.1-.46-.03-.51.66-.06.69 0 0 .43.05.88.08l1.3 3.55-1.82 5.46-3.03-9.01c.5-.03.96-.08.96-.08.45-.06.4-.72-.05-.69 0 0-1.36.1-2.23.1l-.53-.01A8.4 8.4 0 0 1 16.9 4.92c-.03 0-.06-.01-.1-.01-.82 0-1.4.71-1.4 1.48 0 .69.4 1.27.82 1.96.32.56.69 1.27.69 2.3 0 .72-.27 1.55-.64 2.7l-.84 2.8-3.03-9.02zm6.51 1.74a8.4 8.4 0 0 1-3.18 11.3l2.58-7.46c.48-1.2.64-2.17.64-3.02 0-.31-.02-.6-.06-.86z"/></svg>
 							WordPress.org
 						</a>
