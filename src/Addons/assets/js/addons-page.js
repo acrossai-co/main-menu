@@ -8,7 +8,7 @@ import { initInstall } from './modules/install';
 import { initCheckout } from './modules/checkout';
 
 document.addEventListener( 'DOMContentLoaded', () => {
-	const page = document.querySelector( '.wpb-addons-page' );
+	const page = document.querySelector( '.acrossai-addons-page' );
 	if ( ! page ) return;
 
 	// Filters are purely DOM-driven and work regardless of config.
@@ -16,7 +16,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	// Find the localised data object for this page instance.
 	const instanceKey = page.dataset.wpbAddonsInstance || '';
-	const globalName = 'wpbAddonsPage_' + instanceKey.replace( /[^a-zA-Z0-9_]/g, '_' );
+	const globalName = 'acrossaiAddonsPage_' + instanceKey.replace( /[^a-zA-Z0-9_]/g, '_' );
 	const config = window[ globalName ];
 	if ( ! config ) return;
 
@@ -28,7 +28,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		const pendingCard = page.querySelector( `[data-slug="${ config.pendingSlug }"]` );
 		if ( pendingCard ) {
 			pendingCard.scrollIntoView( { behavior: 'smooth', block: 'center' } );
-			const btn = pendingCard.querySelector( '.wpb-addons-page__btn' );
+			const btn = pendingCard.querySelector( '.acrossai-addons-page__btn' );
 			if ( btn ) btn.focus();
 		}
 	}

@@ -9,10 +9,10 @@ defined( 'ABSPATH' ) || exit;
 
 $state       = $addon['button_state'];
 $is_pending  = ( $pending_slug && $pending_slug === $addon['slug'] );
-$card_class  = 'wpb-addons-page__card';
-$card_class .= ' wpb-addons-page__card--' . esc_attr( $addon['type'] );
+$card_class  = 'acrossai-addons-page__card';
+$card_class .= ' acrossai-addons-page__card--' . esc_attr( $addon['type'] );
 if ( $is_pending ) {
-	$card_class .= ' wpb-addons-page__card--highlight';
+	$card_class .= ' acrossai-addons-page__card--highlight';
 }
 ?>
 <div
@@ -20,9 +20,9 @@ if ( $is_pending ) {
 	data-type="<?php echo esc_attr( $addon['type'] ); ?>"
 	data-slug="<?php echo esc_attr( $addon['slug'] ); ?>"
 	data-source="<?php echo esc_attr( $addon['source'] ); ?>"
-	<?php if ( $is_pending ) : ?>aria-label="<?php esc_attr_e( 'This is the add-on you were trying to purchase', 'wpb-addons-page' ); ?>"<?php endif; ?>
+	<?php if ( $is_pending ) : ?>aria-label="<?php esc_attr_e( 'This is the add-on you were trying to purchase', 'acrossai-addons-page' ); ?>"<?php endif; ?>
 >
-	<div class="wpb-addons-page__card-icon">
+	<div class="acrossai-addons-page__card-icon">
 		<img
 			src="<?php echo esc_url( $addon['icon'] ); ?>"
 			alt="<?php echo esc_attr( $addon['name'] ); ?>"
@@ -32,20 +32,20 @@ if ( $is_pending ) {
 		/>
 	</div>
 
-	<div class="wpb-addons-page__card-body">
-		<h3 class="wpb-addons-page__card-title">
+	<div class="acrossai-addons-page__card-body">
+		<h3 class="acrossai-addons-page__card-title">
 			<a href="<?php echo esc_url( $addon['more_url'] ); ?>" target="_blank" rel="noopener noreferrer">
 				<?php echo esc_html( $addon['name'] ); ?>
 			</a>
 		</h3>
 
-		<p class="wpb-addons-page__card-desc"><?php echo esc_html( $addon['description'] ); ?></p>
+		<p class="acrossai-addons-page__card-desc"><?php echo esc_html( $addon['description'] ); ?></p>
 
-		<div class="wpb-addons-page__card-meta">
+		<div class="acrossai-addons-page__card-meta">
 			<?php if ( 'paid' === $addon['type'] && ! empty( $addon['price_label'] ) ) : ?>
-				<span class="wpb-addons-page__price"><?php echo esc_html( $addon['price_label'] ); ?></span>
+				<span class="acrossai-addons-page__price"><?php echo esc_html( $addon['price_label'] ); ?></span>
 			<?php else : ?>
-				<span class="wpb-addons-page__badge wpb-addons-page__badge--free"><?php esc_html_e( 'FREE', 'wpb-addons-page' ); ?></span>
+				<span class="acrossai-addons-page__badge acrossai-addons-page__badge--free"><?php esc_html_e( 'FREE', 'acrossai-addons-page' ); ?></span>
 			<?php endif; ?>
 
 			<?php
@@ -55,17 +55,17 @@ if ( $is_pending ) {
 				'freemius'      => 'Freemius',
 			);
 			$source_label = $source_labels[ $addon['source'] ] ?? ucfirst( $addon['source'] );
-			$source_mod   = 'wpb-addons-page__source--' . str_replace( '.', '-', $addon['source'] );
+			$source_mod   = 'acrossai-addons-page__source--' . str_replace( '.', '-', $addon['source'] );
 			?>
-			<span class="wpb-addons-page__source <?php echo esc_attr( $source_mod ); ?>">
+			<span class="acrossai-addons-page__source <?php echo esc_attr( $source_mod ); ?>">
 				<?php echo esc_html( $source_label ); ?>
 			</span>
 		</div>
 	</div>
 
-	<div class="wpb-addons-page__card-footer">
+	<div class="acrossai-addons-page__card-footer">
 		<button
-			class="button <?php echo esc_attr( $state['css_class'] ); ?> wpb-addons-page__btn"
+			class="button <?php echo esc_attr( $state['css_class'] ); ?> acrossai-addons-page__btn"
 			data-action="<?php echo esc_attr( $state['action'] ); ?>"
 			data-slug="<?php echo esc_attr( $addon['slug'] ); ?>"
 			data-source="<?php echo esc_attr( $addon['source'] ); ?>"
@@ -91,6 +91,6 @@ if ( $is_pending ) {
 			<?php echo esc_html( $state['label'] ); ?>
 		</button>
 
-		<div class="wpb-addons-page__card-error" role="alert" aria-live="assertive" hidden></div>
+		<div class="acrossai-addons-page__card-error" role="alert" aria-live="assertive" hidden></div>
 	</div>
 </div>

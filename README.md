@@ -105,7 +105,7 @@ The package handles:
 - Opt-in / "Login & Connect" flow
 - Shared opt-in across consumer plugins
 
-The `wpb-addons-page` text domain and CSS class prefix are preserved from the original package so existing translations and stylesheet overrides continue to work. See [docs/upgrade-notes.md](docs/upgrade-notes.md) and [docs/readme-template.txt](docs/readme-template.txt) for the wordpress.org `readme.txt` blocks (`== Installation ==`, `== External Services ==`, `== Privacy Policy ==`) the Add-ons page requires.
+The `acrossai-addons-page` text domain and CSS class prefix are preserved from the original package so existing translations and stylesheet overrides continue to work. See [docs/upgrade-notes.md](docs/upgrade-notes.md) and [docs/readme-template.txt](docs/readme-template.txt) for the wordpress.org `readme.txt` blocks (`== Installation ==`, `== External Services ==`, `== Privacy Policy ==`) the Add-ons page requires.
 
 ### Known limitations
 

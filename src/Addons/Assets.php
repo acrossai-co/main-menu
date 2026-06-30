@@ -57,7 +57,7 @@ class Assets {
 		];
 
 		// Unique handle per consumer menu slug to avoid wp_localize_script clobbering.
-		$handle = 'wpb-addons-page-' . $this->menu_slug;
+		$handle = 'acrossai-addons-page-' . $this->menu_slug;
 
 		wp_enqueue_style(
 			$handle,
@@ -77,7 +77,7 @@ class Assets {
 		// Freemius checkout JS (only when user is opted in).
 		$checkout_loaded = false;
 		if ( $this->fs_bridge->is_registered() ) {
-			$enqueue_checkout = apply_filters( 'wpb_addons_enqueue_freemius_checkout', true );
+			$enqueue_checkout = apply_filters( 'acrossai_addons_enqueue_freemius_checkout', true );
 			if ( $enqueue_checkout ) {
 				wp_enqueue_script(
 					'wpb-fs-checkout',
@@ -91,7 +91,7 @@ class Assets {
 		}
 
 		// Build JS payload.
-		$global_name = 'wpbAddonsPage_' . preg_replace( '/[^a-zA-Z0-9_]/', '_', $this->menu_slug );
+		$global_name = 'acrossaiAddonsPage_' . preg_replace( '/[^a-zA-Z0-9_]/', '_', $this->menu_slug );
 		wp_localize_script( $handle, $global_name, $this->build_payload( $checkout_loaded ) );
 	}
 
@@ -102,7 +102,7 @@ class Assets {
 		$return_url = add_query_arg(
 			[
 				'page'              => MenuRegistrar::SUBMENU_SLUG,
-				'wpb_addons_return' => '1',
+				'acrossai_addons_return' => '1',
 			],
 			admin_url( 'admin.php' )
 		);
@@ -121,25 +121,25 @@ class Assets {
 
 		return [
 			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-			'nonce'       => wp_create_nonce( 'wpb_addons_action' ),
-			'textDomain'  => 'wpb-addons-page',
+			'nonce'       => wp_create_nonce( 'acrossai_addons_action' ),
+			'textDomain'  => 'acrossai-addons-page',
 			'i18n'        => [
-				'installing'    => __( 'Installing…', 'wpb-addons-page' ),
-				'activating'    => __( 'Activating…', 'wpb-addons-page' ),
-				'deactivating'  => __( 'Deactivating…', 'wpb-addons-page' ),
-				'installed'     => __( '✓ Installed & Activated', 'wpb-addons-page' ),
-				'activated'     => __( '✓ Activated', 'wpb-addons-page' ),
-				'deactivated'   => __( '✓ Deactivated', 'wpb-addons-page' ),
-				'installFailed' => __( 'Could not install. Please try again.', 'wpb-addons-page' ),
-				'active'        => __( '● Active', 'wpb-addons-page' ),
-				'retry'         => __( 'Retry', 'wpb-addons-page' ),
+				'installing'    => __( 'Installing…', 'acrossai-addons-page' ),
+				'activating'    => __( 'Activating…', 'acrossai-addons-page' ),
+				'deactivating'  => __( 'Deactivating…', 'acrossai-addons-page' ),
+				'installed'     => __( '✓ Installed & Activated', 'acrossai-addons-page' ),
+				'activated'     => __( '✓ Activated', 'acrossai-addons-page' ),
+				'deactivated'   => __( '✓ Deactivated', 'acrossai-addons-page' ),
+				'installFailed' => __( 'Could not install. Please try again.', 'acrossai-addons-page' ),
+				'active'        => __( '● Active', 'acrossai-addons-page' ),
+				'retry'         => __( 'Retry', 'acrossai-addons-page' ),
 			],
 			'freemius'    => [
 				'isRegistered'    => $this->fs_bridge->is_registered(),
 				'connectAgainUrl' => add_query_arg(
 					[
-						'action' => 'wpb_addons_connect_again',
-						'nonce'  => wp_create_nonce( 'wpb_addons_connect' ),
+						'action' => 'acrossai_addons_connect_again',
+						'nonce'  => wp_create_nonce( 'acrossai_addons_connect' ),
 					],
 					admin_url( 'admin-post.php' )
 				),
@@ -147,7 +147,7 @@ class Assets {
 			],
 			'addons'      => $addons,
 			'pendingSlug' => $pending_slug,
-			'returnFlag'  => ! empty( $_GET['wpb_addons_return'] ), // phpcs:ignore WordPress.Security.NonceVerification
+			'returnFlag'  => ! empty( $_GET['acrossai_addons_return'] ), // phpcs:ignore WordPress.Security.NonceVerification
 		];
 	}
 }

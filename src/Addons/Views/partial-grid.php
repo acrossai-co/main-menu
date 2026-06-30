@@ -9,10 +9,10 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( empty( $addons ) ) : ?>
-	<p><?php esc_html_e( 'No add-ons available.', 'wpb-addons-page' ); ?></p>
+	<p><?php esc_html_e( 'No add-ons available.', 'acrossai-addons-page' ); ?></p>
 <?php return; endif; ?>
 
-<div class="wpb-addons-page__grid" role="tabpanel">
+<div class="acrossai-addons-page__grid" role="tabpanel">
 	<?php foreach ( $addons as $addon ) :
 		$renderer->render_partial( 'partial-card', [
 			'addon'        => $addon,

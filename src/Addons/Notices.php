@@ -8,7 +8,7 @@ namespace AcrossAI_Addon;
  */
 class Notices {
 
-	const TRANSIENT_KEY = 'wpb_addons_notices_';
+	const TRANSIENT_KEY = 'acrossai_addons_notices_';
 
 	/** @param string $type 'success' | 'error' | 'warning' */
 	public function queue( string $type, string $message ): void {

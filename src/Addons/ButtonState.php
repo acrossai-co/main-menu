@@ -35,7 +35,7 @@ class ButtonState {
 
 		if ( null === $plugin_file ) {
 			return [
-				'label'     => __( 'Install', 'wpb-addons-page' ),
+				'label'     => __( 'Install', 'acrossai-addons-page' ),
 				'action'    => 'install',
 				'enabled'   => true,
 				'css_class' => 'button-primary',
@@ -45,17 +45,17 @@ class ButtonState {
 
 		if ( is_plugin_active( $plugin_file ) ) {
 			return [
-				'label'       => __( 'Deactivate', 'wpb-addons-page' ),
+				'label'       => __( 'Deactivate', 'acrossai-addons-page' ),
 				'action'      => 'deactivate',
 				'enabled'     => true,
-				'css_class'   => 'button-secondary wpb-addons-page__btn--active',
+				'css_class'   => 'button-secondary acrossai-addons-page__btn--active',
 				'tooltip'     => '',
 				'plugin_file' => $plugin_file,
 			];
 		}
 
 		return [
-			'label'       => __( 'Activate', 'wpb-addons-page' ),
+			'label'       => __( 'Activate', 'acrossai-addons-page' ),
 			'action'      => 'activate',
 			'enabled'     => true,
 			'css_class'   => 'button-secondary',
@@ -72,10 +72,10 @@ class ButtonState {
 		// Active.
 		if ( $plugin_file && is_plugin_active( $plugin_file ) ) {
 			return [
-				'label'       => __( 'Deactivate', 'wpb-addons-page' ),
+				'label'       => __( 'Deactivate', 'acrossai-addons-page' ),
 				'action'      => 'deactivate',
 				'enabled'     => true,
-				'css_class'   => 'button-secondary wpb-addons-page__btn--active',
+				'css_class'   => 'button-secondary acrossai-addons-page__btn--active',
 				'tooltip'     => '',
 				'plugin_file' => $plugin_file,
 			];
@@ -84,7 +84,7 @@ class ButtonState {
 		// Installed but inactive.
 		if ( $plugin_file ) {
 			return [
-				'label'       => __( 'Activate', 'wpb-addons-page' ),
+				'label'       => __( 'Activate', 'acrossai-addons-page' ),
 				'action'      => 'activate',
 				'enabled'     => true,
 				'css_class'   => 'button-secondary',
@@ -96,7 +96,7 @@ class ButtonState {
 		// Not installed + opted in + owns license → show Install.
 		if ( $is_registered && isset( $addon['fs_product_id'] ) && $this->fs_bridge->is_owned( $addon['fs_product_id'] ) ) {
 			return [
-				'label'     => __( 'Install', 'wpb-addons-page' ),
+				'label'     => __( 'Install', 'acrossai-addons-page' ),
 				'action'    => 'install_licensed',
 				'enabled'   => true,
 				'css_class' => 'button-primary',
@@ -106,7 +106,7 @@ class ButtonState {
 
 		// Not installed + no license (opted in or not) → Buy.
 		/* translators: %s: price e.g. $49/year */
-		$label = sprintf( __( 'Buy %s', 'wpb-addons-page' ), $price_label );
+		$label = sprintf( __( 'Buy %s', 'acrossai-addons-page' ), $price_label );
 		return [
 			'label'     => $label,
 			'action'    => 'buy',

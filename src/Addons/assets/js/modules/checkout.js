@@ -5,7 +5,7 @@
  */
 export function initCheckout( page, config ) {
 	page.addEventListener( 'click', ( e ) => {
-		const btn = e.target.closest( '.wpb-addons-page__btn' );
+		const btn = e.target.closest( '.acrossai-addons-page__btn' );
 		if ( ! btn || btn.dataset.action !== 'buy' ) return;
 
 		e.preventDefault();

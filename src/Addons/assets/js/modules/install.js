@@ -3,7 +3,7 @@
  */
 export function initInstall( page, config ) {
 	page.addEventListener( 'click', ( e ) => {
-		const btn = e.target.closest( '.wpb-addons-page__btn' );
+		const btn = e.target.closest( '.acrossai-addons-page__btn' );
 		if ( ! btn ) return;
 
 		const action = btn.dataset.action;
@@ -15,8 +15,8 @@ export function initInstall( page, config ) {
 }
 
 async function handleAction( btn, action, config ) {
-	const card      = btn.closest( '.wpb-addons-page__card' );
-	const errorEl   = card ? card.querySelector( '.wpb-addons-page__card-error' ) : null;
+	const card      = btn.closest( '.acrossai-addons-page__card' );
+	const errorEl   = card ? card.querySelector( '.acrossai-addons-page__card-error' ) : null;
 	const slug      = btn.dataset.slug;
 	const source    = btn.dataset.source;
 	const pluginFile = btn.dataset.pluginFile || '';
@@ -39,13 +39,13 @@ async function handleAction( btn, action, config ) {
 
 	const body = new FormData();
 	if ( action === 'install' ) {
-		body.append( 'action', 'wpb_addons_install_free' );
+		body.append( 'action', 'acrossai_addons_install_free' );
 		body.append( 'source', source );
 	} else if ( action === 'activate' ) {
-		body.append( 'action', 'wpb_addons_activate' );
+		body.append( 'action', 'acrossai_addons_activate' );
 		body.append( 'plugin_file', pluginFile );
 	} else {
-		body.append( 'action', 'wpb_addons_deactivate' );
+		body.append( 'action', 'acrossai_addons_deactivate' );
 		body.append( 'plugin_file', pluginFile );
 	}
 	body.append( 'nonce', config.nonce );
@@ -64,7 +64,7 @@ async function handleAction( btn, action, config ) {
 
 			// Flash confirmation in the button.
 			btn.textContent = confirmLabel;
-			btn.classList.add( 'wpb-addons-page__btn--confirmed' );
+			btn.classList.add( 'acrossai-addons-page__btn--confirmed' );
 			btn.setAttribute( 'aria-busy', 'false' );
 			if ( json.data.plugin_file ) {
 				btn.dataset.pluginFile = json.data.plugin_file;
@@ -72,14 +72,14 @@ async function handleAction( btn, action, config ) {
 
 			// After 1.5 s apply the final server-returned state.
 			setTimeout( () => {
-				btn.classList.remove( 'wpb-addons-page__btn--confirmed' );
+				btn.classList.remove( 'acrossai-addons-page__btn--confirmed' );
 				const state = json.data.state;
 				btn.textContent = state.label;
 				btn.setAttribute( 'aria-label', state.label + ' ' + ( btn.dataset.slug || '' ) );
 				btn.dataset.action = state.action;
 				btn.disabled = ! state.enabled;
 				btn.setAttribute( 'aria-disabled', String( ! state.enabled ) );
-				btn.className = 'button ' + state.css_class + ' wpb-addons-page__btn';
+				btn.className = 'button ' + state.css_class + ' acrossai-addons-page__btn';
 				if ( state.plugin_file ) {
 					btn.dataset.pluginFile = state.plugin_file;
 				}

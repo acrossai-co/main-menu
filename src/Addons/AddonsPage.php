@@ -108,10 +108,10 @@ class AddonsPage {
 		add_action( 'admin_init', [ $this->pending, 'maybe_handle_return' ] );
 		add_action( 'admin_enqueue_scripts', [ $this->assets, 'enqueue' ] );
 		add_action( 'admin_notices', [ $this->notices, 'render' ] );
-		add_action( 'wp_ajax_wpb_addons_install_free', [ $this->ajax, 'install_free' ] );
-		add_action( 'wp_ajax_wpb_addons_activate', [ $this->ajax, 'activate' ] );
-		add_action( 'wp_ajax_wpb_addons_deactivate', [ $this->ajax, 'deactivate' ] );
-		add_action( 'admin_post_wpb_addons_connect_again', [ $this, 'handle_connect_again' ] );
+		add_action( 'wp_ajax_acrossai_addons_install_free', [ $this->ajax, 'install_free' ] );
+		add_action( 'wp_ajax_acrossai_addons_activate', [ $this->ajax, 'activate' ] );
+		add_action( 'wp_ajax_acrossai_addons_deactivate', [ $this->ajax, 'deactivate' ] );
+		add_action( 'admin_post_acrossai_addons_connect_again', [ $this, 'handle_connect_again' ] );
 	}
 
 	/** Stores the hook suffix after the submenu is registered so Assets can gate on it. */
@@ -122,10 +122,10 @@ class AddonsPage {
 
 	/** admin_post handler: resets Freemius anonymous mode and redirects to opt-in page. */
 	public function handle_connect_again(): void {
-		check_admin_referer( 'wpb_addons_connect', 'nonce' );
+		check_admin_referer( 'acrossai_addons_connect', 'nonce' );
 
 		if ( ! current_user_can( 'install_plugins' ) ) {
-			wp_die( esc_html__( 'You do not have permission to do this.', 'wpb-addons-page' ) );
+			wp_die( esc_html__( 'You do not have permission to do this.', 'acrossai-addons-page' ) );
 		}
 
 		$slug = isset( $_GET['slug'] ) ? sanitize_key( $_GET['slug'] ) : '';
@@ -142,7 +142,7 @@ class AddonsPage {
 			add_query_arg(
 				[
 					'page'              => MenuRegistrar::SUBMENU_SLUG,
-					'wpb_addons_return' => '1',
+					'acrossai_addons_return' => '1',
 				],
 				admin_url( 'admin.php' )
 			)

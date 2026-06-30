@@ -8,7 +8,7 @@ namespace AcrossAI_Addon;
  */
 class PendingAddon {
 
-	const TRANSIENT_PREFIX = 'wpb_addons_pending_';
+	const TRANSIENT_PREFIX = 'acrossai_addons_pending_';
 
 	private function key(): string {
 		return self::TRANSIENT_PREFIX . get_current_user_id();
@@ -29,12 +29,12 @@ class PendingAddon {
 
 	/**
 	 * admin_init callback.
-	 * Detects the ?wpb_addons_return=1 query arg set after Freemius redirects back,
+	 * Detects the ?acrossai_addons_return=1 query arg set after Freemius redirects back,
 	 * queues the appropriate admin notice, and preserves the pending slug for the
 	 * page renderer to highlight the relevant card.
 	 */
 	public function maybe_handle_return(): void {
-		if ( empty( $_GET['wpb_addons_return'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( empty( $_GET['acrossai_addons_return'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 
@@ -48,12 +48,12 @@ class PendingAddon {
 		if ( $pending ) {
 			$notices->queue(
 				'success',
-				__( 'Account connected! Now click "Buy" on the add-on you wanted.', 'wpb-addons-page' )
+				__( 'Account connected! Now click "Buy" on the add-on you wanted.', 'acrossai-addons-page' )
 			);
 		} else {
 			$notices->queue(
 				'success',
-				__( 'Account connected! Your purchased add-ons now show an "Install" button.', 'wpb-addons-page' )
+				__( 'Account connected! Your purchased add-ons now show an "Install" button.', 'acrossai-addons-page' )
 			);
 		}
 

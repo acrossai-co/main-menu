@@ -18,14 +18,14 @@ class AjaxHandlers {
 		$this->button_state = $button_state;
 	}
 
-	/** wp_ajax_wpb_addons_install_free */
+	/** wp_ajax_acrossai_addons_install_free */
 	public function install_free(): void {
-		check_ajax_referer( 'wpb_addons_action', 'nonce' );
+		check_ajax_referer( 'acrossai_addons_action', 'nonce' );
 
 		if ( ! current_user_can( 'install_plugins' ) ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'You do not have permission to install plugins.', 'wpb-addons-page' ),
+					'message' => __( 'You do not have permission to install plugins.', 'acrossai-addons-page' ),
 					'code'    => 'forbidden',
 				]
 			);
@@ -37,7 +37,7 @@ class AjaxHandlers {
 		if ( ! in_array( $source, [ 'wordpress.org', 'github' ], true ) ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'Invalid source.', 'wpb-addons-page' ),
+					'message' => __( 'Invalid source.', 'acrossai-addons-page' ),
 					'code'    => 'invalid_source',
 				]
 			);
@@ -47,7 +47,7 @@ class AjaxHandlers {
 		if ( null === $addon || 'paid' === $addon['type'] ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'Add-on not found.', 'wpb-addons-page' ),
+					'message' => __( 'Add-on not found.', 'acrossai-addons-page' ),
 					'code'    => 'not_found',
 				]
 			);
@@ -60,7 +60,7 @@ class AjaxHandlers {
 				[
 					'message' => sprintf(
 						/* translators: %s: add-on name */
-						__( 'Could not install %s. Please try again.', 'wpb-addons-page' ),
+						__( 'Could not install %s. Please try again.', 'acrossai-addons-page' ),
 						esc_html( $addon['name'] )
 					),
 					'detail'  => $result['message'],
@@ -83,14 +83,14 @@ class AjaxHandlers {
 		);
 	}
 
-	/** wp_ajax_wpb_addons_deactivate */
+	/** wp_ajax_acrossai_addons_deactivate */
 	public function deactivate(): void {
-		check_ajax_referer( 'wpb_addons_action', 'nonce' );
+		check_ajax_referer( 'acrossai_addons_action', 'nonce' );
 
 		if ( ! current_user_can( 'deactivate_plugins' ) ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'You do not have permission to deactivate plugins.', 'wpb-addons-page' ),
+					'message' => __( 'You do not have permission to deactivate plugins.', 'acrossai-addons-page' ),
 					'code'    => 'forbidden',
 				]
 			);
@@ -102,7 +102,7 @@ class AjaxHandlers {
 		if ( empty( $plugin_file ) || substr_count( $plugin_file, '/' ) !== 1 ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'Invalid plugin file.', 'wpb-addons-page' ),
+					'message' => __( 'Invalid plugin file.', 'acrossai-addons-page' ),
 					'code'    => 'invalid_plugin_file',
 				]
 			);
@@ -112,7 +112,7 @@ class AjaxHandlers {
 		if ( null === $addon ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'Add-on not found.', 'wpb-addons-page' ),
+					'message' => __( 'Add-on not found.', 'acrossai-addons-page' ),
 					'code'    => 'not_found',
 				]
 			);
@@ -128,14 +128,14 @@ class AjaxHandlers {
 		);
 	}
 
-	/** wp_ajax_wpb_addons_activate */
+	/** wp_ajax_acrossai_addons_activate */
 	public function activate(): void {
-		check_ajax_referer( 'wpb_addons_action', 'nonce' );
+		check_ajax_referer( 'acrossai_addons_action', 'nonce' );
 
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'You do not have permission to activate plugins.', 'wpb-addons-page' ),
+					'message' => __( 'You do not have permission to activate plugins.', 'acrossai-addons-page' ),
 					'code'    => 'forbidden',
 				]
 			);
@@ -148,7 +148,7 @@ class AjaxHandlers {
 		if ( empty( $plugin_file ) || substr_count( $plugin_file, '/' ) !== 1 ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'Invalid plugin file.', 'wpb-addons-page' ),
+					'message' => __( 'Invalid plugin file.', 'acrossai-addons-page' ),
 					'code'    => 'invalid_plugin_file',
 				]
 			);
@@ -158,7 +158,7 @@ class AjaxHandlers {
 		if ( null === $addon ) {
 			wp_send_json_error(
 				[
-					'message' => __( 'Add-on not found.', 'wpb-addons-page' ),
+					'message' => __( 'Add-on not found.', 'acrossai-addons-page' ),
 					'code'    => 'not_found',
 				]
 			);

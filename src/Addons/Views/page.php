@@ -9,9 +9,9 @@
  */
 defined( 'ABSPATH' ) || exit;
 ?>
-<div class="wrap wpb-addons-page" data-wpb-addons-instance="<?php echo esc_attr( isset( $menu_slug ) ? $menu_slug : '' ); ?>">
+<div class="wrap acrossai-addons-page" data-acrossai-addons-instance="<?php echo esc_attr( isset( $menu_slug ) ? $menu_slug : '' ); ?>">
 
-	<h1><?php esc_html_e( 'Add-ons', 'wpb-addons-page' ); ?></h1>
+	<h1><?php esc_html_e( 'Add-ons', 'acrossai-addons-page' ); ?></h1>
 
 	<?php $renderer->render_partial( 'partial-banner', [ 'banner_visible' => $banner_visible ] ); ?>
 	<?php $renderer->render_partial( 'partial-filters' ); ?>

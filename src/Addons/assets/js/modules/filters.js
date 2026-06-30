@@ -2,12 +2,12 @@
  * All / Free / Paid filter tabs with keyboard (arrow key) navigation.
  */
 export function initFilters( page ) {
-	const tabList = page.querySelector( '.wpb-addons-page__filters' );
-	const grid    = page.querySelector( '.wpb-addons-page__grid' );
+	const tabList = page.querySelector( '.acrossai-addons-page__filters' );
+	const grid    = page.querySelector( '.acrossai-addons-page__grid' );
 	if ( ! tabList || ! grid ) return;
 
 	const tabs = Array.from( tabList.querySelectorAll( '[role="tab"]' ) );
-	const cards = Array.from( grid.querySelectorAll( '.wpb-addons-page__card' ) );
+	const cards = Array.from( grid.querySelectorAll( '.acrossai-addons-page__card' ) );
 
 	function activateTab( tab ) {
 		tabs.forEach( ( t ) => {

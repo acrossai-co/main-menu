@@ -50,7 +50,7 @@ class Installer {
 		return [
 			'success'     => true,
 			/* translators: %s: add-on name */
-			'message'     => sprintf( __( '%s installed and activated.', 'wpb-addons-page' ), esc_html( $addon['name'] ) ),
+			'message'     => sprintf( __( '%s installed and activated.', 'acrossai-addons-page' ), esc_html( $addon['name'] ) ),
 			'plugin_file' => $plugin_file ?? '',
 		];
 	}
@@ -77,7 +77,7 @@ class Installer {
 		return [
 			'success' => true,
 			/* translators: %s: add-on name */
-			'message' => sprintf( __( '%s activated.', 'wpb-addons-page' ), esc_html( $addon_name ) ),
+			'message' => sprintf( __( '%s activated.', 'acrossai-addons-page' ), esc_html( $addon_name ) ),
 		];
 	}
 
@@ -96,7 +96,7 @@ class Installer {
 		return [
 			'success' => true,
 			/* translators: %s: add-on name */
-			'message' => sprintf( __( '%s deactivated.', 'wpb-addons-page' ), esc_html( $addon_name ) ),
+			'message' => sprintf( __( '%s deactivated.', 'acrossai-addons-page' ), esc_html( $addon_name ) ),
 		];
 	}
 
@@ -140,7 +140,7 @@ class Installer {
 				return new \WP_Error(
 					'no_download_link',
 					/* translators: %s: plugin slug */
-					sprintf( __( 'Could not retrieve download URL for %s from WordPress.org.', 'wpb-addons-page' ), esc_html( $addon['slug'] ) )
+					sprintf( __( 'Could not retrieve download URL for %s from WordPress.org.', 'acrossai-addons-page' ), esc_html( $addon['slug'] ) )
 				);
 			}
 
@@ -152,13 +152,13 @@ class Installer {
 				return new \WP_Error(
 					'missing_download_url',
 					/* translators: %s: add-on name */
-					sprintf( __( 'No download_url configured for %s.', 'wpb-addons-page' ), esc_html( $addon['name'] ) )
+					sprintf( __( 'No download_url configured for %s.', 'acrossai-addons-page' ), esc_html( $addon['name'] ) )
 				);
 			}
 			return $addon['download_url'];
 		}
 
-		return new \WP_Error( 'invalid_source', __( 'Invalid add-on source for free install.', 'wpb-addons-page' ) );
+		return new \WP_Error( 'invalid_source', __( 'Invalid add-on source for free install.', 'acrossai-addons-page' ) );
 	}
 
 	/**
