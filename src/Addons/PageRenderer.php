@@ -32,7 +32,7 @@ class PageRenderer {
 		$this->button_state = $button_state;
 		$this->pending      = $pending;
 		$this->menu_slug    = $menu_slug;
-		$this->views_path   = dirname( __DIR__ ) . '/src/Views';
+		$this->views_path   = __DIR__ . '/Views';
 	}
 
 	/** Submenu page callback. */

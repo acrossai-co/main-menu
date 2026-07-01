@@ -82,9 +82,9 @@ class FreemiusInitializer {
 
 		// When installed via Composer the SDK lives at:
 		// {consumer}/vendor/freemius/wordpress-sdk/start.php
-		// This package lives at: {consumer}/vendor/acrossai-co/addons-page/src/
-		// Walk up: src -> addons-page -> acrossai-co -> vendor, then into freemius/wordpress-sdk.
-		$sdk_path = dirname( __DIR__, 3 ) . '/freemius/wordpress-sdk/start.php';
+		// This file lives at: {consumer}/vendor/acrossai-co/main-menu/src/Addons/FreemiusInitializer.php
+		// Walk up: Addons -> src -> main-menu -> acrossai-co -> vendor, then into freemius/wordpress-sdk.
+		$sdk_path = dirname( __DIR__, 4 ) . '/freemius/wordpress-sdk/start.php';
 
 		if ( ! file_exists( $sdk_path ) ) {
 			throw new \RuntimeException(

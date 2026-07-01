@@ -32,7 +32,7 @@ class ConsumerPluginLocator {
 	 * Walk up from the package directory until we exit vendor/.
 	 */
 	private static function find_plugin_root(): string {
-		$dir = dirname( __DIR__ ); // start at the package root (addons-page/)
+		$dir = dirname( __DIR__, 2 ); // start at the package root (main-menu/)
 
 		// Walk up until we're no longer inside a directory named 'vendor'.
 		$max_depth = 10;
