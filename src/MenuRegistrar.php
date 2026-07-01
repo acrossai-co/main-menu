@@ -3,15 +3,11 @@
 namespace AcrossAI_Main_Menu;
 
 /**
- * Registers the AcrossAI parent menu and its submenus.
+ * Registers the AcrossAI parent menu and the Settings submenu.
  *
- * Order under the AcrossAI parent:
- *   1. (auto) Dashboard           — duplicates the parent slug
- *   2. Abilities / MCP / Model    — manager submenus, priority 100
- *   3. Settings                   — priority 1000, always last
- *
- * Manager submenu render is delegated to ManagerPageRenderer, which fires an
- * `acrossai_render_{slug}_page` action that feature plugins can replace.
+ * Parent menu is registered at the default admin_menu priority (10).
+ * The Settings submenu is registered at priority 1000 so it lands after
+ * any submenus added by other plugins/components.
  */
 class MenuRegistrar {
 
@@ -27,10 +23,7 @@ class MenuRegistrar {
 	/** @var PageRenderer */
 	private $settings_renderer;
 
-	/** @var array<int,array{slug:string,title:string,renderer:ManagerPageRenderer}> */
-	private $manager_pages = [];
-
-	/** @var string|null Hook suffix returned by the Settings submenu registration. */
+	/** @var string|null Hook suffix returned by add_submenu_page(). */
 	private $hook_suffix = null;
 
 	public function __construct( string $parent_slug, string $settings_slug, DashboardRenderer $dashboard_renderer, PageRenderer $settings_renderer ) {
@@ -38,18 +31,6 @@ class MenuRegistrar {
 		$this->settings_slug      = $settings_slug;
 		$this->dashboard_renderer = $dashboard_renderer;
 		$this->settings_renderer  = $settings_renderer;
-	}
-
-	/**
-	 * Append a manager submenu page (Abilities, MCP, Model, …).
-	 * Registration order under WP admin matches call order.
-	 */
-	public function add_manager_page( string $slug, string $title, ManagerPageRenderer $renderer ): void {
-		$this->manager_pages[] = [
-			'slug'     => $slug,
-			'title'    => $title,
-			'renderer' => $renderer,
-		];
 	}
 
 	public function register_parent(): void {
@@ -60,19 +41,6 @@ class MenuRegistrar {
 			$this->parent_slug,
 			[ $this->dashboard_renderer, 'render' ]
 		);
-	}
-
-	public function register_manager_submenus(): void {
-		foreach ( $this->manager_pages as $page ) {
-			add_submenu_page(
-				$this->parent_slug,
-				$page['title'],
-				$page['title'],
-				'manage_options',
-				$page['slug'],
-				[ $page['renderer'], 'render' ]
-			);
-		}
 	}
 
 	public function register_settings_submenu(): void {

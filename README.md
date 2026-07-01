@@ -1,9 +1,8 @@
 # AcrossAI Main Menu
 
-A reusable Composer package that registers the shared **AcrossAI** top-level admin menu and all of its standard submenus inside WP Admin:
+A reusable Composer package that registers the shared **AcrossAI** top-level admin menu and its standard submenus inside WP Admin:
 
 - **Dashboard** — the AcrossAI landing page (parent menu)
-- **Abilities Manager / MCP Manager / Model Manager** — navigation slots for the matching feature plugins; each renders a placeholder until that plugin replaces the body via an action hook
 - **Add-ons** — a fully working add-ons page (free + paid, Freemius checkout, install/activate AJAX); consumer plugins instantiate `\AcrossAI_Addon\AddonsPage` with their Freemius credentials
 - **Settings** — a shared WordPress Settings API page (flat or tabbed) that any plugin extends with its own sections, fields, and options
 
@@ -41,39 +40,12 @@ add_action( 'plugins_loaded', function () {
 That's it. The first plugin (by jetpack-autoloader version resolution) to boot registers, in order under the AcrossAI parent menu:
 
 - `AcrossAI` parent menu (`add_menu_page`, slug `acrossai`) — the Dashboard landing page
-- `Abilities Manager` submenu (slug `acrossai-abilities`, priority **100**)
-- `MCP Manager` submenu (slug `acrossai-mcp`, priority **100**)
-- `Model Manager` submenu (slug `acrossai-models`, priority **100**)
 - `Add-ons` submenu (slug `acrossai-addons`) — registered when any plugin instantiates `\AcrossAI_Addon\AddonsPage`
 - `Settings` submenu (slug `acrossai-settings`, priority **1000** so it lands last)
 
 If 3 plugins all ship this package, you still get **one** menu and **one** of each page. Every other copy becomes a no-op via jetpack-autoloader's version resolution.
 
-The three manager pages render a placeholder pointing at the relevant feature plugin until that plugin replaces the content (see "Manager pages" below). The Settings page renders a standard `<form action="options.php">` with `settings_fields()`, `do_settings_sections()`, and `submit_button()`.
-
-## Manager pages
-
-Three submenu pages are pre-registered as navigation slots for the AcrossAI feature plugins:
-
-| Slug | Title | Owner plugin | Render action |
-|---|---|---|---|
-| `acrossai-abilities` | Abilities Manager | `acrossai-co/acrossai-abilities-manager` | `acrossai_render_abilities_page` |
-| `acrossai-mcp` | MCP Manager | `acrossai-co/acrossai-mcp-manager` | `acrossai_render_mcp_page` |
-| `acrossai-models` | Model Manager | `acrossai-co/acrossai-model-manager` | `acrossai_render_models_page` |
-
-When a user opens one of these pages, the package fires the matching render action. The owner plugin hooks that action and prints its UI:
-
-```php
-add_action( 'acrossai_render_abilities_page', function () {
-    echo '<div class="wrap"><h1>' . esc_html__( 'Abilities', 'acrossai-abilities-manager' ) . '</h1>';
-    // …render the table, forms, etc.
-    echo '</div>';
-} );
-```
-
-If no callback is attached, the page renders a placeholder explaining that the feature plugin is not active, with **Install from WordPress.org** and **View on GitHub** buttons. This means the AcrossAI menu is consistent across installs regardless of which feature plugins are currently active.
-
-The render action is the entire contract — no further wiring is required. The capability check (`manage_options`) and the page chrome (`.wrap`) are the consumer's responsibility inside the callback.
+The Settings page renders a standard `<form action="options.php">` with `settings_fields()`, `do_settings_sections()`, and `submit_button()`. Feature plugins (Abilities, MCP, Model, etc.) register their own submenu pages against the `acrossai` parent slug from their own codebases — the main-menu package no longer pre-registers navigation slots for them.
 
 ## Add-ons page
 
@@ -261,9 +233,6 @@ add_action( 'admin_init', 'plugin_c_register_settings', 30 );  // third
 | `\AcrossAI_Main_Menu\SettingsPage` | Entrypoint. Construct once per request: `new SettingsPage();`. Safe to construct from every consumer plugin — jetpack-autoloader picks one copy to boot. |
 | `\AcrossAI_Main_Menu\SettingsPage::PARENT_SLUG` | `'acrossai'` — the parent menu slug. |
 | `\AcrossAI_Main_Menu\SettingsPage::SETTINGS_SLUG` | `'acrossai-settings'` — the Settings submenu slug, page slug, and option_group. |
-| `\AcrossAI_Main_Menu\SettingsPage::ABILITIES_SLUG` | `'acrossai-abilities'` — the Abilities Manager submenu slug. |
-| `\AcrossAI_Main_Menu\SettingsPage::MCP_SLUG` | `'acrossai-mcp'` — the MCP Manager submenu slug. |
-| `\AcrossAI_Main_Menu\SettingsPage::MODELS_SLUG` | `'acrossai-models'` — the Model Manager submenu slug. |
 | `\AcrossAI_Main_Menu\SettingsPage::tab_page_slug( string $tab_slug )` | Returns the per-tab page slug (e.g. `'acrossai-settings-providers'`) to pass to `add_settings_section` / `add_settings_field` / `do_settings_sections` in tabbed mode. |
 | `\AcrossAI_Addon\AddonsPage` | Entrypoint for the Add-ons page. Construct once per consumer plugin with its Freemius credentials: `new AddonsPage( __FILE__, [ 'fs_product_id' => '…', 'fs_public_key' => '…' ] );`. Multiple consumer plugins are supported — first to register wins the nav slot. |
 | `\AcrossAI_Addon\MenuRegistrar::SUBMENU_SLUG` | `'acrossai-addons'` — the Add-ons submenu slug. |
