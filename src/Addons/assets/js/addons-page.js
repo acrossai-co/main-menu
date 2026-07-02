@@ -15,7 +15,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	initFilters( page );
 
 	// Find the localised data object for this page instance.
-	const instanceKey = page.dataset.wpbAddonsInstance || '';
+	const instanceKey = page.dataset.acrossaiAddonsInstance || '';
 	const globalName = 'acrossaiAddonsPage_' + instanceKey.replace( /[^a-zA-Z0-9_]/g, '_' );
 	const config = window[ globalName ];
 	if ( ! config ) return;
