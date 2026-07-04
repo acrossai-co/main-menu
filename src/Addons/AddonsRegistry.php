@@ -71,6 +71,45 @@ class AddonsRegistry {
 		);
 	}
 
+	/**
+	 * Resolves the display icon URL for an add-on.
+	 *
+	 * Prefers a locally-installed plugin's `.wordpress-org/` asset so freshly
+	 * built or unpublished plugins still show their icon. Since `.wordpress-org/`
+	 * is a dotfile directory that most web servers refuse to serve, the local
+	 * asset is returned as an inline `data:` URI. Falls back to the `icon` URL
+	 * declared in the registry (typically ps.w.org).
+	 */
+	public static function resolve_icon( array $addon ): string {
+		$slug     = $addon['slug'] ?? '';
+		$fallback = $addon['icon'] ?? '';
+
+		if ( '' === $slug || ! defined( 'WP_PLUGIN_DIR' ) ) {
+			return $fallback;
+		}
+
+		$candidates = array(
+			'icon.svg'         => 'image/svg+xml',
+			'icon-256x256.png' => 'image/png',
+			'icon-128x128.png' => 'image/png',
+			'icon-256x256.jpg' => 'image/jpeg',
+			'icon-128x128.jpg' => 'image/jpeg',
+		);
+		foreach ( $candidates as $file => $mime ) {
+			$abs = WP_PLUGIN_DIR . '/' . $slug . '/.wordpress-org/' . $file;
+			if ( ! is_readable( $abs ) ) {
+				continue;
+			}
+			$contents = @file_get_contents( $abs );
+			if ( false === $contents || '' === $contents ) {
+				continue;
+			}
+			return 'data:' . $mime . ';base64,' . base64_encode( $contents );
+		}
+
+		return $fallback;
+	}
+
 	// -------------------------------------------------------------------------
 	// Hardcoded add-ons list
 	// -------------------------------------------------------------------------

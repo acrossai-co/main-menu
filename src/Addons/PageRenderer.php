@@ -42,9 +42,10 @@ class PageRenderer {
 		$banner_visible = ! $is_registered;
 		$pending_slug   = $this->pending->get();
 
-		// Augment each addon with its button state.
+		// Augment each addon with its button state and resolved icon.
 		$addons_with_state = array_map(
 			function ( $addon ) {
+				$addon['icon']         = AddonsRegistry::resolve_icon( $addon );
 				$addon['button_state'] = $this->button_state->for_addon( $addon );
 				return $addon;
 			},
