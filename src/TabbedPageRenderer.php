@@ -3,34 +3,58 @@
 namespace AcrossAI_Main_Menu;
 
 /**
- * Renders the Settings page using the WordPress Settings API.
+ * Base class for admin pages that render a WordPress Settings API form,
+ * optionally split into tabs contributed by third-party plugins.
  *
- * Two modes:
+ * Subclass and declare two things:
+ *   - get_page_slug()  — the admin page slug (also used as Settings API option_group)
+ *   - get_tabs_key()   — a short key that becomes part of the tabs filter name,
+ *                        so every subclass gets its own filter (e.g. "acrossai_settings_tabs",
+ *                        "acrossai_tools_tabs", …) without any code duplication.
  *
- * 1. Flat (default) — no plugin hooks `acrossai_settings_tabs`. Renders today's
- *    bare form against the shared page slug. Consumer plugins call:
+ * Two rendering modes, chosen at runtime:
  *
- *      register_setting( 'acrossai-settings', 'their_option', $args );
- *      add_settings_section( 'their_section', 'Their Section', $cb, 'acrossai-settings' );
- *      add_settings_field(  'their_field', 'Their Field', $cb, 'acrossai-settings', 'their_section' );
+ * 1. Flat — no plugin hooks the tabs filter. Renders one form against get_page_slug().
+ *    Consumers call add_settings_section() / add_settings_field() with that slug.
  *
- * 2. Tabbed — at least one plugin returns tabs from the `acrossai_settings_tabs`
- *    filter. The page renders a nav-tab bar; each tab has its own form and Save
- *    button. Consumer plugins target a tab with SettingsPage::tab_page_slug().
+ * 2. Tabbed — at least one plugin returns a tab from the tabs filter. Renders a
+ *    nav-tab bar; each tab has its own form and Save button. Consumers target a
+ *    tab by passing $renderer->tab_page_slug( 'my-tab' ) as the section's page slug.
  *
- * The option_group stays `acrossai-settings` in both modes — `register_setting`
+ * The option_group stays equal to get_page_slug() in both modes — register_setting()
  * calls are unchanged regardless of which tab a section belongs to.
  */
-class PageRenderer {
-
-	/** @var string Page slug, also used as the Settings API option_group. */
-	private $settings_slug;
+abstract class TabbedPageRenderer {
 
 	/** @var array<int,array<string,mixed>>|null Cached normalized tabs. */
 	private $tabs_cache = null;
 
-	public function __construct( string $settings_slug ) {
-		$this->settings_slug = $settings_slug;
+	/**
+	 * Page slug — also used as the Settings API option_group.
+	 * Example: 'acrossai-settings'.
+	 */
+	abstract protected function get_page_slug(): string;
+
+	/**
+	 * Short key used to build the tabs filter name.
+	 * Example: 'settings' → filter 'acrossai_settings_tabs'.
+	 */
+	abstract protected function get_tabs_key(): string;
+
+	/**
+	 * Full filter name plugins hook to contribute tabs for this page.
+	 */
+	public function get_tabs_filter_name(): string {
+		return 'acrossai_' . $this->get_tabs_key() . '_tabs';
+	}
+
+	/**
+	 * Returns the page slug consumer plugins pass to add_settings_section() /
+	 * add_settings_field() / do_settings_sections() when targeting a specific
+	 * tab on this page.
+	 */
+	public function tab_page_slug( string $tab_slug ): string {
+		return $this->get_page_slug() . '-' . sanitize_key( $tab_slug );
 	}
 
 	public function render(): void {
@@ -38,7 +62,8 @@ class PageRenderer {
 			return;
 		}
 
-		$tabs = $this->resolve_tabs();
+		$page_slug = $this->get_page_slug();
+		$tabs      = $this->resolve_tabs();
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -46,8 +71,8 @@ class PageRenderer {
 			<?php if ( empty( $tabs ) ) : ?>
 				<form action="options.php" method="post">
 					<?php
-					settings_fields( $this->settings_slug );
-					do_settings_sections( $this->settings_slug );
+					settings_fields( $page_slug );
+					do_settings_sections( $page_slug );
 					submit_button();
 					?>
 				</form>
@@ -58,8 +83,8 @@ class PageRenderer {
 				?>
 				<form action="options.php" method="post">
 					<?php
-					settings_fields( $this->settings_slug );
-					do_settings_sections( SettingsPage::tab_page_slug( $active['slug'] ) );
+					settings_fields( $page_slug );
+					do_settings_sections( $this->tab_page_slug( $active['slug'] ) );
 					submit_button();
 					?>
 				</form>
@@ -69,8 +94,8 @@ class PageRenderer {
 	}
 
 	/**
-	 * Runs the `acrossai_settings_tabs` filter and returns a normalized,
-	 * capability-filtered, priority-sorted list of tabs.
+	 * Runs the tabs filter and returns a normalized, capability-filtered,
+	 * priority-sorted list of tabs.
 	 *
 	 * @return array<int,array{slug:string,label:string,priority:int,capability:string}>
 	 */
@@ -79,7 +104,7 @@ class PageRenderer {
 			return $this->tabs_cache;
 		}
 
-		$raw = apply_filters( 'acrossai_settings_tabs', [] );
+		$raw = apply_filters( $this->get_tabs_filter_name(), [] );
 		if ( ! is_array( $raw ) ) {
 			$raw = [];
 		}
@@ -101,7 +126,7 @@ class PageRenderer {
 			if ( isset( $seen[ $slug ] ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					_doing_it_wrong(
-						'acrossai_settings_tabs',
+						esc_html( $this->get_tabs_filter_name() ),
 						sprintf( 'Duplicate tab slug "%s" — first registration wins.', esc_html( $slug ) ),
 						'0.0.4'
 					);
@@ -150,8 +175,8 @@ class PageRenderer {
 	}
 
 	/**
-	 * Returns the active tab for the current request — `$_GET['tab']` when
-	 * it matches a registered slug, otherwise the first tab.
+	 * Returns the active tab for the current request — `$_GET['tab']` when it
+	 * matches a registered slug, otherwise the first tab.
 	 *
 	 * @param array<int,array<string,mixed>> $tabs Normalized tab list (non-empty).
 	 */
@@ -174,11 +199,12 @@ class PageRenderer {
 	 * @param string                         $active_slug Slug of the active tab.
 	 */
 	private function render_tab_nav( array $tabs, string $active_slug ): void {
+		$page_slug = $this->get_page_slug();
 		echo '<h2 class="nav-tab-wrapper">';
 		foreach ( $tabs as $tab ) {
 			$url   = add_query_arg(
 				[
-					'page' => $this->settings_slug,
+					'page' => $page_slug,
 					'tab'  => $tab['slug'],
 				],
 				admin_url( 'admin.php' )

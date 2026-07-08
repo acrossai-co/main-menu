@@ -165,11 +165,15 @@ Duplicate slugs: first registration wins. With `WP_DEBUG` on, subsequent duplica
 
 ### Adding sections/fields to a tab
 
-Use `SettingsPage::tab_page_slug( 'your-tab-slug' )` as the `$page` argument:
+Get the shared renderer and call its `tab_page_slug( 'your-tab-slug' )` instance method to obtain the `$page` argument:
 
 ```php
 add_action( 'admin_init', function () {
-    $page = \AcrossAI_Main_Menu\SettingsPage::tab_page_slug( 'providers' );
+    $renderer = \AcrossAI_Main_Menu\SettingsPage::get_settings_renderer();
+    if ( ! $renderer ) {
+        return; // main-menu package not booted in this request
+    }
+    $page = $renderer->tab_page_slug( 'providers' );
 
     register_setting(
         'acrossai-settings',           // option_group — always the shared slug, regardless of tab
@@ -206,6 +210,36 @@ Notes:
 - **Active tab persistence.** The active tab survives the Save round-trip via `_wp_http_referer` — no extra wiring needed.
 - **Backward compatibility.** If no plugin hooks `acrossai_settings_tabs`, the flat-page example earlier in this README keeps working unchanged. Once any plugin registers a tab, sections still attached to the bare `'acrossai-settings'` slug are not rendered — migrate them under a tab.
 
+### Reusing the tabbed pattern on another page
+
+The Settings page is one instance of a generic pattern. To add a second tabbed admin page (e.g. a "Tools" page) without re-implementing tab rendering, subclass `TabbedPageRenderer` and pin two things — the WP page slug and a short key that becomes the tabs filter name:
+
+```php
+use AcrossAI_Main_Menu\TabbedPageRenderer;
+
+final class ToolsPageRenderer extends TabbedPageRenderer {
+    protected function get_page_slug(): string { return 'acrossai-tools'; }
+    protected function get_tabs_key(): string  { return 'tools'; }
+}
+
+// Register the submenu and point it at the renderer:
+add_action( 'admin_menu', function () {
+    $renderer = new ToolsPageRenderer();
+    add_submenu_page(
+        \AcrossAI_Main_Menu\SettingsPage::PARENT_SLUG,
+        __( 'Tools', 'my-plugin' ),
+        __( 'Tools', 'my-plugin' ),
+        'manage_options',
+        'acrossai-tools',
+        [ $renderer, 'render' ]
+    );
+} );
+```
+
+Third-party plugins register tabs on the new page by hooking `acrossai_tools_tabs` — same entry shape (`slug`, `label`, `priority`, `capability`) as `acrossai_settings_tabs`. They register sections against `$renderer->tab_page_slug( 'my-tab' )` exactly as with the Settings page.
+
+The filter name is always `"acrossai_{$key}_tabs"`, so each page gets its own isolated tab list. Rendering, capability gating, active-tab detection, and the per-tab form + Save button are all handled by `TabbedPageRenderer` — subclasses add no rendering code.
+
 ## How the page composes across plugins
 
 `do_settings_sections( 'acrossai-settings' )` iterates every section registered against that page slug, in registration order. So:
@@ -233,7 +267,9 @@ add_action( 'admin_init', 'plugin_c_register_settings', 30 );  // third
 | `\AcrossAI_Main_Menu\SettingsPage` | Entrypoint. Construct once per request: `new SettingsPage();`. Safe to construct from every consumer plugin — jetpack-autoloader picks one copy to boot. |
 | `\AcrossAI_Main_Menu\SettingsPage::PARENT_SLUG` | `'acrossai'` — the parent menu slug. |
 | `\AcrossAI_Main_Menu\SettingsPage::SETTINGS_SLUG` | `'acrossai-settings'` — the Settings submenu slug, page slug, and option_group. |
-| `\AcrossAI_Main_Menu\SettingsPage::tab_page_slug( string $tab_slug )` | Returns the per-tab page slug (e.g. `'acrossai-settings-providers'`) to pass to `add_settings_section` / `add_settings_field` / `do_settings_sections` in tabbed mode. |
+| `\AcrossAI_Main_Menu\SettingsPage::get_settings_renderer()` | Returns the shared `SettingsPageRenderer` instance (or `null` if the main-menu package has not booted yet in this request). Use it to call `->tab_page_slug( 'your-tab' )`. |
+| `\AcrossAI_Main_Menu\TabbedPageRenderer` | Abstract base for tabbed WP admin pages. Subclass and implement `get_page_slug()` + `get_tabs_key()` to add a second tabbed page — the filter (`acrossai_{key}_tabs`), rendering, capability gating, and per-tab form/Save button are all handled by the base class. |
+| `\AcrossAI_Main_Menu\SettingsPageRenderer` | Concrete subclass of `TabbedPageRenderer` used by the Settings page. Exposes `tab_page_slug( string $tab_slug )` returning e.g. `'acrossai-settings-providers'`. |
 | `\AcrossAI_Addon\AddonsPage` | Entrypoint for the Add-ons page. Construct once per consumer plugin with its Freemius credentials: `new AddonsPage( __FILE__, [ 'fs_product_id' => '…', 'fs_public_key' => '…' ] );`. Multiple consumer plugins are supported — first to register wins the nav slot. |
 | `\AcrossAI_Addon\MenuRegistrar::SUBMENU_SLUG` | `'acrossai-addons'` — the Add-ons submenu slug. |
 

@@ -20,13 +20,13 @@ class MenuRegistrar {
 	/** @var DashboardRenderer */
 	private $dashboard_renderer;
 
-	/** @var PageRenderer */
+	/** @var TabbedPageRenderer */
 	private $settings_renderer;
 
 	/** @var string|null Hook suffix returned by add_submenu_page(). */
 	private $hook_suffix = null;
 
-	public function __construct( string $parent_slug, string $settings_slug, DashboardRenderer $dashboard_renderer, PageRenderer $settings_renderer ) {
+	public function __construct( string $parent_slug, string $settings_slug, DashboardRenderer $dashboard_renderer, TabbedPageRenderer $settings_renderer ) {
 		$this->parent_slug        = $parent_slug;
 		$this->settings_slug      = $settings_slug;
 		$this->dashboard_renderer = $dashboard_renderer;
