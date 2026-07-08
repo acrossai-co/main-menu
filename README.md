@@ -176,7 +176,7 @@ add_action( 'admin_init', function () {
     $page = $renderer->tab_page_slug( 'providers' );
 
     register_setting(
-        'acrossai-settings',           // option_group — always the shared slug, regardless of tab
+        $page,                         // option_group — tab-scoped; each tab has its own whitelist (0.0.13+)
         'plugin_a_api_key',
         [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => '' ]
     );
@@ -205,10 +205,27 @@ add_action( 'admin_init', function () {
 
 Notes:
 
-- **`option_group` stays `acrossai-settings` in tabbed mode.** The shared option_group is what makes `register_setting`, the nonce, and the save flow work — regardless of which tab a section lives under. Only the `$page` argument changes per tab.
+- **`option_group` is tab-scoped in 0.0.13+.** Each tab's form posts with `option_page = <tab-scoped slug>`, so WordPress walks only that tab's whitelist on save. This prevents the cross-tab option-clobber bug that shared-`acrossai-settings` had in 0.0.12 (saving one tab silently wiped other tabs' options). See "Migrating from 0.0.12" below.
 - **One Save button per tab.** Switching tabs without saving discards in-progress changes (standard WP admin pattern).
 - **Active tab persistence.** The active tab survives the Save round-trip via `_wp_http_referer` — no extra wiring needed.
 - **Backward compatibility.** If no plugin hooks `acrossai_settings_tabs`, the flat-page example earlier in this README keeps working unchanged. Once any plugin registers a tab, sections still attached to the bare `'acrossai-settings'` slug are not rendered — migrate them under a tab.
+
+### Migrating from 0.0.12 (breaking change)
+
+0.0.13 fixes a cross-tab option-clobber bug by making each tab's form use its own tab-scoped `option_page` / `option_group`. If your consumer plugin registered settings against the shared `'acrossai-settings'` in tabbed mode, its Save will silently no-op (WP's `options.php` handler rejects the write because the option is not in the tab-scoped whitelist).
+
+**One-line migration** per `register_setting()` call:
+
+```php
+// 0.0.12
+register_setting( 'acrossai-settings', 'plugin_a_api_key', [ ... ] );
+
+// 0.0.13+
+$page = $renderer->tab_page_slug( 'providers' );
+register_setting( $page, 'plugin_a_api_key', [ ... ] );
+```
+
+No other code changes are required. `add_settings_section()` / `add_settings_field()` were already using `$page = tab_page_slug(...)` — those stay the same.
 
 ### Reusing the tabbed pattern on another page
 

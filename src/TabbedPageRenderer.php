@@ -78,13 +78,22 @@ abstract class TabbedPageRenderer {
 				</form>
 			<?php else : ?>
 				<?php
-				$active = $this->resolve_active_tab( $tabs );
+				$active     = $this->resolve_active_tab( $tabs );
+				$tab_scoped = $this->tab_page_slug( $active['slug'] );
 				$this->render_tab_nav( $tabs, $active['slug'] );
 				?>
 				<form action="options.php" method="post">
 					<?php
-					settings_fields( $page_slug );
-					do_settings_sections( $this->tab_page_slug( $active['slug'] ) );
+					// Feature 0.0.13 — tab-scoped option_group: each tab's form
+					// posts with `option_page = <tab-scoped slug>` so WordPress
+					// walks only that tab's whitelist on save. Prevents the
+					// cross-tab option-clobber bug that shared `$page_slug`
+					// as the option_group had in 0.0.12. Consumer plugins
+					// must register their settings against this same
+					// tab-scoped slug (see README "Adding sections/fields to
+					// a tab" section).
+					settings_fields( $tab_scoped );
+					do_settings_sections( $tab_scoped );
 					submit_button();
 					?>
 				</form>
