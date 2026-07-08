@@ -257,6 +257,36 @@ Third-party plugins register tabs on the new page by hooking `acrossai_tools_tab
 
 The filter name is always `"acrossai_{$key}_tabs"`, so each page gets its own isolated tab list. Rendering, capability gating, active-tab detection, and the per-tab form + Save button are all handled by `TabbedPageRenderer` — subclasses add no rendering code.
 
+### Using the tabs base without a Settings page
+
+The tab plumbing (filter, list, active tab, nav rendering) lives in `\AcrossAI_Main_Menu\Tabs`. `TabbedPageRenderer` extends `Tabs` and layers the Settings-API form + Save button on top. If you want the tab bar but not the Settings-API form — a custom admin screen, a meta box, a dashboard widget, a Tools submenu that renders its own body — extend `Tabs` directly:
+
+```php
+use AcrossAI_Main_Menu\Tabs;
+
+final class ReportTabs extends Tabs {
+    protected function get_tabs_key(): string { return 'reports'; }
+}
+
+// Third-party plugins contribute tabs via `acrossai_reports_tabs`.
+
+// Anywhere in the admin (custom `add_menu_page` callback, meta box, …):
+$tabs_ui = new ReportTabs();
+$tabs    = $tabs_ui->get_tabs();
+if ( ! empty( $tabs ) ) {
+    $active = $tabs_ui->get_active_tab( $tabs );
+    $tabs_ui->render_tab_nav( $tabs, $active['slug'] );
+    // Render the body for $active['slug'] however you like — no form required.
+}
+```
+
+The default tab-URL builder is `add_query_arg( 'tab', $slug )` against the current request URL, so tab links stay on whatever screen you're rendering. Two extension points cover non-standard contexts:
+
+- **Override `default_tab_url( $tab_slug )`** on your subclass to emit a different URL scheme (e.g. an admin submenu that needs `admin.php?page=…&tab=…`, or a REST-driven screen with a hash fragment).
+- **Pass a `$url_for` callable to `render_tab_nav()`** per invocation for one-off tweaks — e.g. `$tabs_ui->render_tab_nav( $tabs, $active['slug'], fn( $slug ) => my_url( $slug ) )`.
+
+For non-URL active-tab sources (block attribute, POST body, session), override `protected function get_requested_slug(): string` to read from your source instead of `$_GET['tab']`.
+
 ## How the page composes across plugins
 
 `do_settings_sections( 'acrossai-settings' )` iterates every section registered against that page slug, in registration order. So:
@@ -285,7 +315,8 @@ add_action( 'admin_init', 'plugin_c_register_settings', 30 );  // third
 | `\AcrossAI_Main_Menu\SettingsPage::PARENT_SLUG` | `'acrossai'` — the parent menu slug. |
 | `\AcrossAI_Main_Menu\SettingsPage::SETTINGS_SLUG` | `'acrossai-settings'` — the Settings submenu slug, page slug, and option_group. |
 | `\AcrossAI_Main_Menu\SettingsPage::get_settings_renderer()` | Returns the shared `SettingsPageRenderer` instance (or `null` if the main-menu package has not booted yet in this request). Use it to call `->tab_page_slug( 'your-tab' )`. |
-| `\AcrossAI_Main_Menu\TabbedPageRenderer` | Abstract base for tabbed WP admin pages. Subclass and implement `get_page_slug()` + `get_tabs_key()` to add a second tabbed page — the filter (`acrossai_{key}_tabs`), rendering, capability gating, and per-tab form/Save button are all handled by the base class. |
+| `\AcrossAI_Main_Menu\Tabs` | Abstract base for tab bars — filter dispatch (`acrossai_{key}_tabs`), normalization, capability gating, active-tab resolution, and a `render_tab_nav()` helper. Extend this directly for any UI that needs a tab bar *without* the Settings-API form/Save flow (custom admin screens, meta boxes, dashboard widgets, Tools submenus). |
+| `\AcrossAI_Main_Menu\TabbedPageRenderer` | Abstract base for tabbed WP admin pages. Extends `Tabs`. Subclass and implement `get_page_slug()` + `get_tabs_key()` to add a second tabbed page — the filter, rendering, capability gating, and per-tab form/Save button are all handled by the base class. |
 | `\AcrossAI_Main_Menu\SettingsPageRenderer` | Concrete subclass of `TabbedPageRenderer` used by the Settings page. Exposes `tab_page_slug( string $tab_slug )` returning e.g. `'acrossai-settings-providers'`. |
 | `\AcrossAI_Addon\AddonsPage` | Entrypoint for the Add-ons page. Construct once per consumer plugin with its Freemius credentials: `new AddonsPage( __FILE__, [ 'fs_product_id' => '…', 'fs_public_key' => '…' ] );`. Multiple consumer plugins are supported — first to register wins the nav slot. |
 | `\AcrossAI_Addon\MenuRegistrar::SUBMENU_SLUG` | `'acrossai-addons'` — the Add-ons submenu slug. |
