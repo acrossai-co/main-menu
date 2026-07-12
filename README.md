@@ -60,9 +60,19 @@ new \AcrossAI_Addon\AddonsPage(
         'fs_product_id' => '12345',      // your Freemius product ID
         'fs_public_key' => 'pk_abc123',  // your Freemius public key
         'fs_slug'       => 'your-plugin', // optional — defaults to 'acrossai-addons'
+        'fs_menu'       => [             // optional — override which Freemius auto-submenus surface
+            'account' => true,           // Account settings — defaults to true
+            'contact' => true,           // Contact Us     — defaults to true
+            'support' => true,           // wp.org Support — defaults to true
+            'upgrade' => false,          // Upgrade        — defaults to false (Add-ons page owns this UX)
+            'pricing' => false,          // Pricing        — defaults to false (Add-ons page owns this UX)
+            'addons'  => false,          // Add-ons        — defaults to false (would duplicate the vendor submenu)
+        ],
     ]
 );
 ```
+
+The `fs_menu` overrides array is merged over `FreemiusInitializer::DEFAULT_MENU` — omit any key to keep its default. Pass `false` to hide a submenu, `true` to show it. The `slug` key is derived from the parent menu (`$parent_slug` constructor arg) and cannot be overridden here.
 
 Register a free product in your [Freemius dashboard](https://dashboard.freemius.com) (WordPress Plugin, Analytics only, free plan ON) and grab its **Product ID** and **Public Key**. Each plugin gets its own Freemius product so activations and analytics are tracked separately per plugin.
 

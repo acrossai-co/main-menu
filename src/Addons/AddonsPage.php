@@ -59,6 +59,12 @@ class AddonsPage {
 	 *                                           'fs_product_id'  (required) — Freemius product ID.
 	 *                                           'fs_public_key'  (required) — Freemius public key (pk_...).
 	 *                                           'fs_slug'        (optional) — Freemius product slug; defaults to the submenu slug.
+	 *                                           'fs_menu'        (optional) — array of Freemius `menu` config overrides.
+	 *                                                                          Accepted boolean keys: `account`, `contact`,
+	 *                                                                          `support`, `upgrade`, `pricing`, `addons`.
+	 *                                                                          Any key omitted keeps its default (see
+	 *                                                                          FreemiusInitializer::DEFAULT_MENU). Non-array
+	 *                                                                          values are ignored.
 	 * @param string      $parent_slug         Parent menu slug to register under. Defaults to the
 	 *                                          AcrossAI main-menu parent ('acrossai'). Pass a custom slug
 	 *                                          only if you need the Add-ons page under a different menu.
@@ -75,6 +81,7 @@ class AddonsPage {
 		$fs_product_id = isset( $args['fs_product_id'] ) ? (string) $args['fs_product_id'] : '';
 		$fs_public_key = isset( $args['fs_public_key'] ) ? (string) $args['fs_public_key'] : '';
 		$fs_slug       = isset( $args['fs_slug'] ) ? sanitize_key( $args['fs_slug'] ) : MenuRegistrar::SUBMENU_SLUG;
+		$fs_menu       = isset( $args['fs_menu'] ) && is_array( $args['fs_menu'] ) ? $args['fs_menu'] : array();
 
 		if ( '' === $fs_product_id || '' === $fs_public_key ) {
 			throw new \InvalidArgumentException(
@@ -83,7 +90,7 @@ class AddonsPage {
 			);
 		}
 
-		$fs_instance     = FreemiusInitializer::init( $this->consumer_main_file, $this->menu_slug, $fs_product_id, $fs_public_key, $fs_slug );
+		$fs_instance     = FreemiusInitializer::init( $this->consumer_main_file, $this->menu_slug, $fs_product_id, $fs_public_key, $fs_slug, $fs_menu );
 		$this->fs_bridge = new FreemiusBridge( $fs_instance );
 		$this->notices   = new Notices();
 		$this->pending   = new PendingAddon();

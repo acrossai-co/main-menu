@@ -15,13 +15,46 @@ class FreemiusInitializer {
 	private static $instances = [];
 
 	/**
+	 * Default Freemius `menu` config values (excluding the required `slug`).
+	 *
+	 * Consumers override individual keys by passing $menu_overrides to init().
+	 * `slug` is derived from the caller's $menu_slug argument and cannot be
+	 * overridden via $menu_overrides — pass a different $menu_slug instead.
+	 *
+	 * Rationale for defaults:
+	 * - account / contact / support default to `true` so operator-facing
+	 *   Freemius surfaces (activation, support form, wp.org forum link)
+	 *   are discoverable under every consumer plugin's AcrossAI submenu
+	 *   without each plugin having to opt in.
+	 * - upgrade / pricing default to `false` because the bundled Add-ons
+	 *   page owns the upgrade + pricing UX for AcrossAI products.
+	 * - addons defaults to `false` because a second Freemius-added Add-ons
+	 *   row would duplicate the vendor's already-registered Add-ons submenu
+	 *   (MenuRegistrar::register()).
+	 */
+	private const DEFAULT_MENU = array(
+		'account' => true,
+		'contact' => true,
+		'support' => true,
+		'upgrade' => false,
+		'pricing' => false,
+		'addons'  => false,
+	);
+
+	/**
 	 * Load the SDK (if not already loaded) and return the FS instance for the given product.
 	 *
 	 * @param string $consumer_main_file Absolute path to the consumer plugin's main file.
-	 * @param string $menu_slug          Consumer's parent admin menu slug.
+	 * @param string $menu_slug          Consumer's parent admin menu slug (becomes `menu.slug`; cannot be overridden).
 	 * @param string $product_id         Freemius product ID (numeric string).
 	 * @param string $public_key         Freemius product public key (pk_...).
 	 * @param string $slug               Freemius product slug.
+	 * @param array  $menu_overrides     Optional per-consumer overrides for the Freemius `menu` config.
+	 *                                    Accepted keys: `account`, `contact`, `support`, `upgrade`,
+	 *                                    `pricing`, `addons` (all boolean). Any key omitted from this
+	 *                                    array keeps its DEFAULT_MENU value. Unknown keys pass through
+	 *                                    verbatim so future Freemius menu config extensions can be used
+	 *                                    without a package bump. `slug` is stripped — pass $menu_slug.
 	 *
 	 * @return object Freemius instance.
 	 */
@@ -30,7 +63,8 @@ class FreemiusInitializer {
 		string $menu_slug,
 		string $product_id,
 		string $public_key,
-		string $slug
+		string $slug,
+		array $menu_overrides = array()
 	): object {
 		if ( isset( self::$instances[ $product_id ] ) ) {
 			return self::$instances[ $product_id ];
@@ -45,6 +79,10 @@ class FreemiusInitializer {
 			);
 		}
 
+		// Strip `slug` so consumers can't override the parent-menu slug via this array
+		// (they'd have to pass a different $menu_slug to actually change the parent menu).
+		unset( $menu_overrides['slug'] );
+
 		self::$instances[ $product_id ] = fs_dynamic_init(
 			array(
 				'id'             => $product_id,
@@ -54,14 +92,10 @@ class FreemiusInitializer {
 				'is_premium'     => false,
 				'has_addons'     => false,
 				'has_paid_plans' => false,
-				'menu'           => array(
-					'slug'    => $menu_slug,
-					'account' => true,
-					'contact' => true,
-					'support' => true,
-					'upgrade' => false,
-					'pricing' => false,
-					'addons'  => false,
+				'menu'           => array_merge(
+					self::DEFAULT_MENU,
+					$menu_overrides,
+					array( 'slug' => $menu_slug )
 				),
 				'navigation'     => 'menu',
 				'file'           => $consumer_main_file,
