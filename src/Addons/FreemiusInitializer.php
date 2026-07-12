@@ -55,6 +55,13 @@ class FreemiusInitializer {
 	 *                                    array keeps its DEFAULT_MENU value. Unknown keys pass through
 	 *                                    verbatim so future Freemius menu config extensions can be used
 	 *                                    without a package bump. `slug` is stripped — pass $menu_slug.
+	 * @param bool   $has_addons         Passed to fs_dynamic_init() as `has_addons`. Required to be
+	 *                                    `true` for Freemius to render its Add-ons submenu at all
+	 *                                    (Freemius SDK gates the row on `if ( $this->has_addons() )`).
+	 *                                    Defaults to `false` for backwards compatibility with
+	 *                                    consumers that don't expose an Add-ons UX. Umbrella-style
+	 *                                    consumer plugins (Freemius product hosts all AcrossAI
+	 *                                    add-ons) MUST pass `true`.
 	 *
 	 * @return object Freemius instance.
 	 */
@@ -64,7 +71,8 @@ class FreemiusInitializer {
 		string $product_id,
 		string $public_key,
 		string $slug,
-		array $menu_overrides = array()
+		array $menu_overrides = array(),
+		bool $has_addons = false
 	): object {
 		if ( isset( self::$instances[ $product_id ] ) ) {
 			return self::$instances[ $product_id ];
@@ -90,7 +98,7 @@ class FreemiusInitializer {
 				'type'           => 'plugin',
 				'public_key'     => $public_key,
 				'is_premium'     => false,
-				'has_addons'     => false,
+				'has_addons'     => $has_addons,
 				'has_paid_plans' => false,
 				'menu'           => array_merge(
 					self::DEFAULT_MENU,

@@ -68,6 +68,11 @@ new \AcrossAI_Addon\AddonsPage(
             'pricing' => false,          // Pricing        — defaults to false (Add-ons page owns this UX)
             'addons'  => false,          // Add-ons        — defaults to false (would duplicate the vendor submenu)
         ],
+        'fs_has_addons' => true,         // optional — pass `true` if you want Freemius' own Add-ons
+                                         // submenu (via fs_menu.addons) to actually render. Freemius
+                                         // SDK gates the row on `has_addons`; passing `true` here
+                                         // together with `fs_menu.addons => true` is what surfaces
+                                         // the Add-ons row. Defaults to `false`.
     ]
 );
 ```
