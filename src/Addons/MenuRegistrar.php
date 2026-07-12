@@ -32,14 +32,15 @@ class MenuRegistrar {
 			return;
 		}
 
-		$this->hook_suffix = add_submenu_page(
-			$this->parent_slug,
-			__( 'Add-ons', 'acrossai' ),
-			__( 'Add-ons', 'acrossai' ),
-			'install_plugins',
-			self::SUBMENU_SLUG,
-			[ $this->renderer, 'render' ]
-		);
+		// Add-ons submenu temporarily disabled.
+		// $this->hook_suffix = add_submenu_page(
+		// 	$this->parent_slug,
+		// 	__( 'Add-ons', 'acrossai' ),
+		// 	__( 'Add-ons', 'acrossai' ),
+		// 	'install_plugins',
+		// 	self::SUBMENU_SLUG,
+		// 	[ $this->renderer, 'render' ]
+		// );
 
 		self::$registered = true;
 	}
