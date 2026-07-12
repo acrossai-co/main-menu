@@ -56,9 +56,9 @@ class FreemiusInitializer {
 				'has_paid_plans' => false,
 				'menu'           => array(
 					'slug'    => $menu_slug,
-					'account' => false,
-					'contact' => false,
-					'support' => false,
+					'account' => true,
+					'contact' => true,
+					'support' => true,
 					'upgrade' => false,
 					'pricing' => false,
 					'addons'  => false,
