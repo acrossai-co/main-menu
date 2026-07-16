@@ -3,7 +3,6 @@
 A reusable Composer package that registers the shared **AcrossAI** top-level admin menu and its standard submenus inside WP Admin:
 
 - **Dashboard** — the AcrossAI landing page (parent menu)
-- **Add-ons** — a fully working add-ons page (free + paid, Freemius checkout, install/activate AJAX); consumer plugins instantiate `\AcrossAI_Addon\AddonsPage` with their Freemius credentials
 - **Settings** — a shared WordPress Settings API page (flat or tabbed) that any plugin extends with its own sections, fields, and options
 
 Designed to be installed in **multiple plugins side-by-side**: `automattic/jetpack-autoloader` ensures only the highest-version copy boots, so the menu is registered exactly once regardless of how many plugins ship the package.
@@ -13,7 +12,6 @@ Designed to be installed in **multiple plugins side-by-side**: `automattic/jetpa
 - PHP 8.1+
 - WordPress 6.0+
 - `automattic/jetpack-autoloader: ^5.0` in your plugin's `composer.json`
-- `freemius/wordpress-sdk: ^2.0` — pulled in transitively (required by the Add-ons page)
 
 ## Installation
 
@@ -40,65 +38,15 @@ add_action( 'plugins_loaded', function () {
 That's it. The first plugin (by jetpack-autoloader version resolution) to boot registers, in order under the AcrossAI parent menu:
 
 - `AcrossAI` parent menu (`add_menu_page`, slug `acrossai`) — the Dashboard landing page
-- `Add-ons` submenu (slug `acrossai-addons`) — registered when any plugin instantiates `\AcrossAI_Addon\AddonsPage`
 - `Settings` submenu (slug `acrossai-settings`, priority **1000** so it lands last)
 
 If 3 plugins all ship this package, you still get **one** menu and **one** of each page. Every other copy becomes a no-op via jetpack-autoloader's version resolution.
 
 The Settings page renders a standard `<form action="options.php">` with `settings_fields()`, `do_settings_sections()`, and `submit_button()`. Feature plugins (Abilities, MCP, Model, etc.) register their own submenu pages against the `acrossai` parent slug from their own codebases — the main-menu package no longer pre-registers navigation slots for them.
 
-## Add-ons page
-
-The Add-ons page (formerly the standalone `acrossai-co/addons-page` package) lives at submenu slug `acrossai-addons` and ships a complete free/paid add-ons UI with Freemius checkout, one-click install, and activate/deactivate AJAX.
-
-Each consumer plugin instantiates `\AcrossAI_Addon\AddonsPage` once with its own Freemius credentials. The first plugin to boot registers the Add-ons submenu under the `acrossai` parent; subsequent plugins still initialize their Freemius product and contribute add-ons to the shared registry but skip re-registering the nav entry.
-
-```php
-new \AcrossAI_Addon\AddonsPage(
-    __FILE__,
-    [
-        'fs_product_id' => '12345',      // your Freemius product ID
-        'fs_public_key' => 'pk_abc123',  // your Freemius public key
-        'fs_slug'       => 'your-plugin', // optional — defaults to 'acrossai-addons'
-        'fs_menu'       => [             // optional — override which Freemius auto-submenus surface
-            'account' => true,           // Account settings — defaults to true
-            'contact' => true,           // Contact Us     — defaults to true
-            'support' => true,           // wp.org Support — defaults to true
-            'upgrade' => false,          // Upgrade        — defaults to false (Add-ons page owns this UX)
-            'pricing' => false,          // Pricing        — defaults to false (Add-ons page owns this UX)
-            'addons'  => false,          // Add-ons        — defaults to false (would duplicate the vendor submenu)
-        ],
-        'fs_has_addons' => true,         // optional — pass `true` if you want Freemius' own Add-ons
-                                         // submenu (via fs_menu.addons) to actually render. Freemius
-                                         // SDK gates the row on `has_addons`; passing `true` here
-                                         // together with `fs_menu.addons => true` is what surfaces
-                                         // the Add-ons row. Defaults to `false`.
-    ]
-);
-```
-
-The `fs_menu` overrides array is merged over `FreemiusInitializer::DEFAULT_MENU` — omit any key to keep its default. Pass `false` to hide a submenu, `true` to show it. The `slug` key is derived from the parent menu (`$parent_slug` constructor arg) and cannot be overridden here.
-
-Register a free product in your [Freemius dashboard](https://dashboard.freemius.com) (WordPress Plugin, Analytics only, free plan ON) and grab its **Product ID** and **Public Key**. Each plugin gets its own Freemius product so activations and analytics are tracked separately per plugin.
-
-A third positional `$parent_slug` argument is supported for legacy setups that want the page under a different parent menu; omit it to land under `acrossai`.
-
-The package handles:
-
-- Registering the **Add-ons submenu** under the `acrossai` parent
-- Rendering the add-ons grid (free + paid)
-- Installing free add-ons silently (WordPress.org API or GitHub ZIP)
-- Paid add-on checkout via the Freemius JS popup
-- Opt-in / "Login & Connect" flow
-- Shared opt-in across consumer plugins
-
-The `acrossai-addons-page` text domain and CSS class prefix are preserved from the original package so existing translations and stylesheet overrides continue to work. See [docs/upgrade-notes.md](docs/upgrade-notes.md) and [docs/readme-template.txt](docs/readme-template.txt) for the wordpress.org `readme.txt` blocks (`== Installation ==`, `== External Services ==`, `== Privacy Policy ==`) the Add-ons page requires.
-
 ### Known limitations
 
 - **Multisite**: not tested or supported. Works on per-site dashboards but network-activated behaviour is undefined.
-- **Uninstall edge case**: if two plugins use the Add-ons page and one is *uninstalled* (not just deactivated) while the other is active, Freemius may clear shared opt-in state. Recovery: the user clicks "Login / Connect" on the remaining plugin's Add-ons page.
-- **Non-plugin contexts**: instantiating outside a WordPress plugin (theme, mu-plugin, CLI) throws `\RuntimeException`.
 
 ## Adding settings from your plugin
 
@@ -333,8 +281,6 @@ add_action( 'admin_init', 'plugin_c_register_settings', 30 );  // third
 | `\AcrossAI_Main_Menu\Tabs` | Abstract base for tab bars — filter dispatch (`acrossai_{key}_tabs`), normalization, capability gating, active-tab resolution, and a `render_tab_nav()` helper. Extend this directly for any UI that needs a tab bar *without* the Settings-API form/Save flow (custom admin screens, meta boxes, dashboard widgets, Tools submenus). |
 | `\AcrossAI_Main_Menu\TabbedPageRenderer` | Abstract base for tabbed WP admin pages. Extends `Tabs`. Subclass and implement `get_page_slug()` + `get_tabs_key()` to add a second tabbed page — the filter, rendering, capability gating, and per-tab form/Save button are all handled by the base class. |
 | `\AcrossAI_Main_Menu\SettingsPageRenderer` | Concrete subclass of `TabbedPageRenderer` used by the Settings page. Exposes `tab_page_slug( string $tab_slug )` returning e.g. `'acrossai-settings-providers'`. |
-| `\AcrossAI_Addon\AddonsPage` | Entrypoint for the Add-ons page. Construct once per consumer plugin with its Freemius credentials: `new AddonsPage( __FILE__, [ 'fs_product_id' => '…', 'fs_public_key' => '…' ] );`. Multiple consumer plugins are supported — first to register wins the nav slot. |
-| `\AcrossAI_Addon\MenuRegistrar::SUBMENU_SLUG` | `'acrossai-addons'` — the Add-ons submenu slug. |
 
 ## Notes for multi-plugin installs
 
