@@ -34,6 +34,22 @@ class AddonsPageRenderer {
 	 */
 	private const ADDONS = array(
 		array(
+			'slug'        => 'acrossai-abilities-manager',
+			'name'        => 'AcrossAI Abilities Manager',
+			'description' => 'Discover, inspect, and manage WordPress Abilities registered on your site — browse the registry, view schemas, and control which abilities are exposed.',
+			'icon'        => 'https://ps.w.org/acrossai-abilities-manager/assets/icon-128x128.png',
+			'more_url'    => 'https://wordpress.org/plugins/acrossai-abilities-manager/',
+			'source'      => 'wordpress.org',
+		),
+		array(
+			'slug'        => 'acrossai-mcp-manager',
+			'name'        => 'AcrossAI MCP Manager',
+			'description' => 'Seamless integration with Model Context Protocol (MCP) servers — lets AI assistants and code editors safely access your WordPress site via secure application passwords.',
+			'icon'        => 'https://ps.w.org/acrossai-mcp-manager/assets/icon-128x128.png',
+			'more_url'    => 'https://wordpress.org/plugins/acrossai-mcp-manager/',
+			'source'      => 'wordpress.org',
+		),
+		array(
 			'slug'        => 'acrossai-model-manager',
 			'name'        => 'AcrossAI Model Manager',
 			'description' => 'Control which AI model is used per capability, set request time limits, and review a full audit log of every AI generation call on your site.',
@@ -47,14 +63,6 @@ class AddonsPageRenderer {
 			'description' => 'Disable AI functionality in WordPress without touching code. Hooks into wp_supports_ai to return false when the option is enabled.',
 			'icon'        => 'https://ps.w.org/turn-off-ai-features/assets/icon-128x128.png',
 			'more_url'    => 'https://wordpress.org/plugins/turn-off-ai-features/',
-			'source'      => 'wordpress.org',
-		),
-		array(
-			'slug'        => 'acrossai-mcp-manager',
-			'name'        => 'AcrossAI MCP Manager',
-			'description' => 'Seamless integration with Model Context Protocol (MCP) servers — lets AI assistants and code editors safely access your WordPress site via secure application passwords.',
-			'icon'        => 'https://ps.w.org/acrossai-mcp-manager/assets/icon-128x128.png',
-			'more_url'    => 'https://wordpress.org/plugins/acrossai-mcp-manager/',
 			'source'      => 'wordpress.org',
 		),
 	);
