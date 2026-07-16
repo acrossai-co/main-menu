@@ -99,8 +99,8 @@ class SettingsPage {
 		);
 
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_parent' ] );
-		add_action( 'admin_menu', [ $this->menu_registrar, 'register_addons_submenu' ], 20 );
-		add_action( 'admin_menu', [ $this->menu_registrar, 'register_settings_submenu' ], 1000 );
+		add_action( 'admin_menu', [ $this->menu_registrar, 'register_settings_submenu' ], 20 );
+		add_action( 'admin_menu', [ $this->menu_registrar, 'register_addons_submenu' ], 1000 );
 
 		add_action( 'wp_ajax_acrossai_addons_install',    [ $this->addons_ajax, 'install' ] );
 		add_action( 'wp_ajax_acrossai_addons_activate',   [ $this->addons_ajax, 'activate' ] );

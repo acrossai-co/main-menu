@@ -6,8 +6,8 @@ namespace AcrossAI_Main_Menu;
  * Registers the AcrossAI parent menu and its shared submenus (Add-ons, Settings).
  *
  * Parent menu is registered at the default admin_menu priority (10).
- * Add-ons is registered at priority 20 so it lands right after the Dashboard.
- * Settings is registered at priority 1000 so it lands last.
+ * Settings is registered at priority 20 so it lands right after the Dashboard.
+ * Add-ons is registered at priority 1000 so it lands last.
  */
 class MenuRegistrar {
 
