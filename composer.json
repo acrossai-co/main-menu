@@ -5,13 +5,11 @@
     "license": "GPL-2.0-or-later",
     "require": {
         "php": ">=8.1",
-        "automattic/jetpack-autoloader": "^5.0",
-        "freemius/wordpress-sdk": "^2.0"
+        "automattic/jetpack-autoloader": "^5.0"
     },
     "autoload": {
         "psr-4": {
-            "AcrossAI_Main_Menu\\": "src/",
-            "AcrossAI_Addon\\": "src/Addons/"
+            "AcrossAI_Main_Menu\\": "src/"
         }
     },
     "config": {
