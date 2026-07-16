@@ -1,18 +1,16 @@
 <?php
 
-namespace AcrossAI_Addon;
+namespace AcrossAI_Main_Menu;
 
 /**
- * Simple Add-ons page. Registers an "Add-ons" submenu under the shared
- * `acrossai` parent menu and renders a hard-coded list of add-ons.
+ * Renderer for the shared "Add-ons" submenu page under the AcrossAI parent.
  *
- * Usage from a consumer plugin:
- *   new \AcrossAI_Addon\AddonsPage();
+ * Holds the hard-coded add-ons list and outputs a simple card grid. Mirrors
+ * DashboardRenderer / SettingsPageRenderer — nothing more than what render()
+ * needs, no AJAX, no install flow, no external service. Every card is a name,
+ * description, and "More info" link to the plugin's page.
  */
-class AddonsPage {
-
-	const PARENT_SLUG  = 'acrossai';
-	const SUBMENU_SLUG = 'acrossai-addons';
+class AddonsPageRenderer {
 
 	/**
 	 * Hard-coded add-ons list. Every entry:
@@ -46,35 +44,12 @@ class AddonsPage {
 		),
 		array(
 			'slug'        => 'acrossai-core-abilities',
-			'name'         => 'AcrossAI Core Abilities',
+			'name'        => 'AcrossAI Core Abilities',
 			'description' => 'Register, manage, and expose site capabilities to AI agents and clients via the standard WordPress Abilities API.',
 			'icon'        => '',
 			'more_url'    => 'https://github.com/acrossai-co/acrossai-core-abilities/releases',
 		),
 	);
-
-	/** Process-wide guard so the submenu is registered exactly once. */
-	private static $registered = false;
-
-	public function __construct() {
-		add_action( 'admin_menu', [ $this, 'register_submenu' ], 20 );
-	}
-
-	public function register_submenu(): void {
-		if ( self::$registered ) {
-			return;
-		}
-		self::$registered = true;
-
-		add_submenu_page(
-			self::PARENT_SLUG,
-			__( 'Add-ons', 'acrossai' ),
-			__( 'Add-ons', 'acrossai' ),
-			'install_plugins',
-			self::SUBMENU_SLUG,
-			[ $this, 'render' ]
-		);
-	}
 
 	public function render(): void {
 		echo '<div class="wrap">';

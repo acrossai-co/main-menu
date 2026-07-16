@@ -19,6 +19,7 @@ namespace AcrossAI_Main_Menu;
  *
  * Registers:
  *   - "AcrossAI" top-level menu (slug: acrossai) — the Dashboard landing page
+ *   - "Add-ons"  submenu          (slug: acrossai-addons,   admin_menu priority 20)
  *   - "Settings" submenu          (slug: acrossai-settings, admin_menu priority 1000)
  *
  * The Settings page renders a standard WordPress Settings API form. Consumer
@@ -30,6 +31,7 @@ namespace AcrossAI_Main_Menu;
 class SettingsPage {
 
 	const PARENT_SLUG   = 'acrossai';
+	const ADDONS_SLUG   = 'acrossai-addons';
 	const SETTINGS_SLUG = 'acrossai-settings';
 
 	/** @var self|null Shared instance — first construction wins for both `instance()` and `new`. */
@@ -63,6 +65,9 @@ class SettingsPage {
 	/** @var DashboardRenderer */
 	private $dashboard_renderer;
 
+	/** @var AddonsPageRenderer */
+	private $addons_renderer;
+
 	/** @var SettingsPageRenderer */
 	private $settings_renderer;
 
@@ -74,15 +79,19 @@ class SettingsPage {
 		self::$_instance = $this;
 
 		$this->dashboard_renderer = new DashboardRenderer();
+		$this->addons_renderer    = new AddonsPageRenderer();
 		$this->settings_renderer  = new SettingsPageRenderer();
 		$this->menu_registrar     = new MenuRegistrar(
 			self::PARENT_SLUG,
+			self::ADDONS_SLUG,
 			self::SETTINGS_SLUG,
 			$this->dashboard_renderer,
+			$this->addons_renderer,
 			$this->settings_renderer
 		);
 
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_parent' ] );
+		add_action( 'admin_menu', [ $this->menu_registrar, 'register_addons_submenu' ], 20 );
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_settings_submenu' ], 1000 );
 	}
 }
