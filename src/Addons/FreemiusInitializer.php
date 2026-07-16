@@ -11,8 +11,42 @@ namespace AcrossAI_Addon;
  */
 class FreemiusInitializer {
 
+	/**
+	 * Freemius product ID for the AcrossAI umbrella. All paid child add-ons
+	 * (Claude Connectors, BuddyBoss Abilities, and any future paid add-ons)
+	 * register themselves under this parent via the Freemius `parent` block,
+	 * and rely on `do_action( 'acrossai_loaded' )` / `\acrossai_main_menu()` (see
+	 * ../parent-addon-signal.php) as the "umbrella is ready" signal.
+	 *
+	 * @since 0.0.19
+	 */
+	public const UMBRELLA_PRODUCT_ID = '34418';
+
 	/** @var object[] Memoized FS instances keyed by product ID. */
 	private static $instances = [];
+
+	/**
+	 * True once the first consumer has claimed the shared contact/support
+	 * submenus under the AcrossAI parent. All subsequent consumers get
+	 * contact=false, support=false so we render one Contact Us + one Support
+	 * Forum entry under the parent instead of N of each.
+	 *
+	 * @var bool
+	 */
+	private static $shared_menus_claimed = false;
+
+	/**
+	 * account-slug => product display name, captured at init() time so the
+	 * once-hooked admin_menu pass can rename colliding account entries to
+	 * "<Product Name> Account" without needing to reach back into the FS
+	 * instances.
+	 *
+	 * @var array<string, string>
+	 */
+	private static $account_labels = [];
+
+	/** @var bool Guard so the rename admin_menu action is registered exactly once. */
+	private static $rename_hook_registered = false;
 
 	/**
 	 * Default Freemius `menu` config values (excluding the required `slug`).
@@ -22,10 +56,14 @@ class FreemiusInitializer {
 	 * overridden via $menu_overrides — pass a different $menu_slug instead.
 	 *
 	 * Rationale for defaults:
-	 * - account / contact / support default to `true` so operator-facing
-	 *   Freemius surfaces (activation, support form, wp.org forum link)
-	 *   are discoverable under every consumer plugin's AcrossAI submenu
-	 *   without each plugin having to opt in.
+	 * - account defaults to `true` so every product has its own Freemius
+	 *   Account entry (activation / opt-in / license). The rename pass in
+	 *   maybe_rename_account_entries() disambiguates the labels so we don't
+	 *   render N identically-named "Account" rows.
+	 * - contact / support default to `true` here so the first consumer to
+	 *   init() gets them; init() flips them to `false` for every consumer
+	 *   after that (see $shared_menus_claimed) so the parent menu shows a
+	 *   single Contact Us and a single Support Forum entry.
 	 * - upgrade / pricing default to `false` because the bundled Add-ons
 	 *   page owns the upgrade + pricing UX for AcrossAI products.
 	 * - addons defaults to `false` because a second Freemius-added Add-ons
@@ -91,6 +129,23 @@ class FreemiusInitializer {
 		// (they'd have to pass a different $menu_slug to actually change the parent menu).
 		unset( $menu_overrides['slug'] );
 
+		$menu_config = array_merge(
+			self::DEFAULT_MENU,
+			$menu_overrides,
+			array( 'slug' => $menu_slug )
+		);
+
+		// First consumer to init() keeps contact + support; every subsequent
+		// consumer gets them force-off so we don't stack N Contact Us and N
+		// Support Forum entries under the shared parent menu. Consumers can
+		// still opt themselves out entirely by passing false in $menu_overrides.
+		if ( self::$shared_menus_claimed ) {
+			$menu_config['contact'] = false;
+			$menu_config['support'] = false;
+		} else {
+			self::$shared_menus_claimed = true;
+		}
+
 		self::$instances[ $product_id ] = fs_dynamic_init(
 			array(
 				'id'             => $product_id,
@@ -100,17 +155,107 @@ class FreemiusInitializer {
 				'is_premium'     => false,
 				'has_addons'     => $has_addons,
 				'has_paid_plans' => false,
-				'menu'           => array_merge(
-					self::DEFAULT_MENU,
-					$menu_overrides,
-					array( 'slug' => $menu_slug )
-				),
+				'menu'           => $menu_config,
 				'navigation'     => 'menu',
 				'file'           => $consumer_main_file,
 			)
 		);
 
+		// First time the umbrella product is registered, load the global
+		// `\acrossai_main_menu()` helper and fire `acrossai_loaded` so paid
+		// child add-ons (Claude Connectors, BuddyBoss Abilities, …) can
+		// safely call `fs_dynamic_init` with `parent` pointing at 34418.
+		// See ../parent-addon-signal.php for the helper.
+		if ( self::UMBRELLA_PRODUCT_ID === $product_id ) {
+			if ( ! function_exists( 'acrossai_main_menu' ) ) {
+				require_once __DIR__ . '/../parent-addon-signal.php';
+			}
+			/**
+			 * Fires once, after the AcrossAI umbrella Freemius product
+			 * (34418) is registered with the SDK. Paid child add-ons use
+			 * this as their init signal.
+			 *
+			 * @since 0.0.19
+			 */
+			do_action( 'acrossai_loaded' );
+		}
+
+		// Track this product's Account label so the once-hooked rename pass can
+		// disambiguate multiple "Account" submenu entries under the parent.
+		// The Freemius SDK adds Account entries at slug "{menu_slug}-account".
+		if ( ! empty( $menu_config['account'] ) ) {
+			self::$account_labels[ $menu_slug . '-account' ] = self::product_label( self::$instances[ $product_id ], $slug );
+		}
+
+		if ( ! self::$rename_hook_registered ) {
+			self::$rename_hook_registered = true;
+			add_action( 'admin_menu', [ self::class, 'maybe_rename_account_entries' ], 999 );
+		}
+
 		return self::$instances[ $product_id ];
+	}
+
+	/**
+	 * Returns the umbrella product (34418) Freemius instance, or null if
+	 * it has not been registered yet. Backing method for the global
+	 * `\acrossai_main_menu()` helper in ../parent-addon-signal.php.
+	 *
+	 * @return object|null
+	 * @since  0.0.19
+	 */
+	public static function umbrella_instance(): ?object {
+		return self::$instances[ self::UMBRELLA_PRODUCT_ID ] ?? null;
+	}
+
+	/**
+	 * admin_menu (priority 999) callback: renames every account entry we've seen
+	 * this request from the generic "Account" label to "<Product Name> Account",
+	 * so N consumer plugins under one parent don't render N identically-labelled
+	 * rows. Runs once per request regardless of consumer count.
+	 *
+	 * @internal Exposed as public only because add_action() needs a callable.
+	 */
+	public static function maybe_rename_account_entries(): void {
+		global $submenu;
+		if ( empty( self::$account_labels ) || empty( $submenu ) || ! is_array( $submenu ) ) {
+			return;
+		}
+
+		foreach ( $submenu as $parent_slug => &$items ) {
+			foreach ( $items as &$item ) {
+				// $item = [ 0 => menu_title, 1 => capability, 2 => menu_slug, ... ]
+				if ( ! isset( $item[2] ) ) {
+					continue;
+				}
+				$account_slug = $item[2];
+				if ( ! isset( self::$account_labels[ $account_slug ] ) ) {
+					continue;
+				}
+				$product_name = self::$account_labels[ $account_slug ];
+				/* translators: %s: product display name */
+				$item[0] = sprintf( __( '%s Account', 'acrossai' ), $product_name );
+			}
+			unset( $item );
+		}
+		unset( $items );
+	}
+
+	/**
+	 * Best-effort human-readable product name for a Freemius instance.
+	 * Falls back to the slug when the SDK surface isn't available.
+	 */
+	private static function product_label( object $fs, string $slug ): string {
+		try {
+			if ( method_exists( $fs, 'get_plugin_name' ) ) {
+				$name = (string) $fs->get_plugin_name();
+				if ( '' !== $name ) {
+					return $name;
+				}
+			}
+		} catch ( \Exception $e ) {
+			// Fall through to slug.
+		}
+		return $slug;
 	}
 
 	/**

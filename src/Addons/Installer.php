@@ -45,14 +45,23 @@ class Installer {
 		}
 
 		// Re-scan get_plugins() to find the actual installed basename.
-		$plugin_file = $this->find_installed_file( $addon['slug'] );
+		$plugin_file = $this->find_installed_file( $addon );
 
 		return [
 			'success'     => true,
 			/* translators: %s: add-on name */
-			'message'     => sprintf( __( '%s installed and activated.', 'acrossai-addons-page' ), esc_html( $addon['name'] ) ),
+			'message'     => sprintf( __( '%s installed.', 'acrossai-addons-page' ), esc_html( $addon['name'] ) ),
 			'plugin_file' => $plugin_file ?? '',
 		];
+	}
+
+	/**
+	 * Public accessor so callers (AjaxHandlers, ButtonState) can resolve the
+	 * plugin file for a registry entry without duplicating the exact-match
+	 * lookup logic.
+	 */
+	public function locate_plugin_file( array $addon ): ?string {
+		return $this->find_installed_file( $addon );
 	}
 
 	/**
@@ -162,28 +171,16 @@ class Installer {
 	}
 
 	/**
-	 * Scans get_plugins() for a plugin whose folder matches the slug.
-	 * GitHub ZIPs may extract to non-canonical folder names, so we scan rather than guess.
+	 * Resolves the plugin file for a freshly-installed add-on via the shared
+	 * exact-match locator. GitHub ZIPs whose extracted folder differs from the
+	 * slug MUST declare that folder in the registry as 'install_folder' — we
+	 * refuse to guess via substring matching (previous behavior let slug
+	 * 'acrossai-core-abilities' resolve to folder 'acrossai', activating the
+	 * wrong plugin).
 	 */
-	private function find_installed_file( string $slug ): ?string {
+	private function find_installed_file( array $addon ): ?string {
 		wp_clean_plugins_cache();
-		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-		$plugins = get_plugins();
-		foreach ( array_keys( $plugins ) as $plugin_file ) {
-			$folder = explode( '/', $plugin_file )[0];
-			if ( $folder === $slug ) {
-				return $plugin_file;
-			}
-		}
-		// Also try partial match for GitHub slugs that differ from the folder name.
-		foreach ( array_keys( $plugins ) as $plugin_file ) {
-			$folder = explode( '/', $plugin_file )[0];
-			if ( false !== strpos( $folder, $slug ) || false !== strpos( $slug, $folder ) ) {
-				return $plugin_file;
-			}
-		}
-		return null;
+		PluginFileLocator::flush();
+		return PluginFileLocator::for_addon( $addon );
 	}
 }

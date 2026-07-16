@@ -31,17 +31,7 @@ class AjaxHandlers {
 			);
 		}
 
-		$slug   = isset( $_POST['slug'] ) ? sanitize_key( $_POST['slug'] ) : '';
-		$source = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : '';
-
-		if ( ! in_array( $source, [ 'wordpress.org', 'github' ], true ) ) {
-			wp_send_json_error(
-				[
-					'message' => __( 'Invalid source.', 'acrossai-addons-page' ),
-					'code'    => 'invalid_source',
-				]
-			);
-		}
+		$slug = isset( $_POST['slug'] ) ? sanitize_key( $_POST['slug'] ) : '';
 
 		$addon = AddonsRegistry::find( $slug );
 		if ( null === $addon || 'paid' === $addon['type'] ) {
@@ -53,9 +43,9 @@ class AjaxHandlers {
 			);
 		}
 
-		$result = $this->installer->install_from_source( $addon );
+		$install = $this->installer->install_from_source( $addon );
 
-		if ( ! $result['success'] ) {
+		if ( ! $install['success'] ) {
 			wp_send_json_error(
 				[
 					'message' => sprintf(
@@ -63,21 +53,62 @@ class AjaxHandlers {
 						__( 'Could not install %s. Please try again.', 'acrossai-addons-page' ),
 						esc_html( $addon['name'] )
 					),
-					'detail'  => $result['message'],
+					'detail'  => $install['message'],
 					'code'    => 'install_failed',
 				]
 			);
 		}
 
-		// Auto-activate after install.
-		if ( ! empty( $result['plugin_file'] ) ) {
-			$this->installer->activate( $result['plugin_file'], $addon['name'] );
+		$plugin_file = $install['plugin_file'];
+
+		// Install succeeded but we couldn't locate the plugin under its
+		// expected folder (bad ZIP, registry slug mismatch, missing
+		// install_folder key). Report the honest state instead of pretending
+		// it activated.
+		if ( '' === $plugin_file ) {
+			wp_send_json_success(
+				[
+					'message'     => sprintf(
+						/* translators: %s: add-on name */
+						__( '%s installed but could not be located to activate.', 'acrossai-addons-page' ),
+						esc_html( $addon['name'] )
+					),
+					'plugin_file' => '',
+					'activated'   => false,
+					'code'        => 'installed_not_located',
+					'state'       => $this->button_state->for_addon( $addon ),
+				]
+			);
+		}
+
+		$activate = $this->installer->activate( $plugin_file, $addon['name'] );
+
+		if ( ! $activate['success'] ) {
+			wp_send_json_success(
+				[
+					'message'     => sprintf(
+						/* translators: %s: add-on name */
+						__( '%s installed but could not be activated.', 'acrossai-addons-page' ),
+						esc_html( $addon['name'] )
+					),
+					'detail'      => $activate['message'],
+					'plugin_file' => $plugin_file,
+					'activated'   => false,
+					'code'        => 'installed_not_activated',
+					'state'       => $this->button_state->for_addon( $addon ),
+				]
+			);
 		}
 
 		wp_send_json_success(
 			[
-				'message'     => $result['message'],
-				'plugin_file' => $result['plugin_file'],
+				'message'     => sprintf(
+					/* translators: %s: add-on name */
+					__( '%s installed and activated.', 'acrossai-addons-page' ),
+					esc_html( $addon['name'] )
+				),
+				'plugin_file' => $plugin_file,
+				'activated'   => true,
 				'state'       => $this->button_state->for_addon( $addon ),
 			]
 		);
@@ -96,24 +127,25 @@ class AjaxHandlers {
 			);
 		}
 
-		$slug        = isset( $_POST['slug'] ) ? sanitize_key( $_POST['slug'] ) : '';
-		$plugin_file = isset( $_POST['plugin_file'] ) ? sanitize_text_field( wp_unslash( $_POST['plugin_file'] ) ) : '';
-
-		if ( empty( $plugin_file ) || substr_count( $plugin_file, '/' ) !== 1 ) {
-			wp_send_json_error(
-				[
-					'message' => __( 'Invalid plugin file.', 'acrossai-addons-page' ),
-					'code'    => 'invalid_plugin_file',
-				]
-			);
-		}
-
+		$slug  = isset( $_POST['slug'] ) ? sanitize_key( $_POST['slug'] ) : '';
 		$addon = AddonsRegistry::find( $slug );
 		if ( null === $addon ) {
 			wp_send_json_error(
 				[
 					'message' => __( 'Add-on not found.', 'acrossai-addons-page' ),
 					'code'    => 'not_found',
+				]
+			);
+		}
+
+		// Resolve authoritatively server-side. Any client-supplied plugin_file
+		// is ignored — previously this endpoint acted on whatever the POST said.
+		$plugin_file = $this->installer->locate_plugin_file( $addon );
+		if ( null === $plugin_file ) {
+			wp_send_json_error(
+				[
+					'message' => __( 'Add-on is not installed.', 'acrossai-addons-page' ),
+					'code'    => 'not_installed',
 				]
 			);
 		}
@@ -141,25 +173,26 @@ class AjaxHandlers {
 			);
 		}
 
-		$slug        = isset( $_POST['slug'] ) ? sanitize_key( $_POST['slug'] ) : '';
-		$plugin_file = isset( $_POST['plugin_file'] ) ? sanitize_text_field( wp_unslash( $_POST['plugin_file'] ) ) : '';
-
-		// Sanitize plugin_file: must be relative path with single slash.
-		if ( empty( $plugin_file ) || substr_count( $plugin_file, '/' ) !== 1 ) {
-			wp_send_json_error(
-				[
-					'message' => __( 'Invalid plugin file.', 'acrossai-addons-page' ),
-					'code'    => 'invalid_plugin_file',
-				]
-			);
-		}
-
+		$slug  = isset( $_POST['slug'] ) ? sanitize_key( $_POST['slug'] ) : '';
 		$addon = AddonsRegistry::find( $slug );
 		if ( null === $addon ) {
 			wp_send_json_error(
 				[
 					'message' => __( 'Add-on not found.', 'acrossai-addons-page' ),
 					'code'    => 'not_found',
+				]
+			);
+		}
+
+		// Resolve authoritatively server-side. Any client-supplied plugin_file
+		// is ignored — previously this endpoint would activate whatever file
+		// path the POST body named, provided it had one slash.
+		$plugin_file = $this->installer->locate_plugin_file( $addon );
+		if ( null === $plugin_file ) {
+			wp_send_json_error(
+				[
+					'message' => __( 'Add-on is not installed.', 'acrossai-addons-page' ),
+					'code'    => 'not_installed',
 				]
 			);
 		}

@@ -5,8 +5,17 @@ namespace AcrossAI_Main_Menu;
 /**
  * Public entrypoint for the AcrossAI parent menu + Settings page.
  *
- * Usage from a consumer plugin:
+ * Usage from a consumer plugin — preferred:
+ *   \AcrossAI_Main_Menu\SettingsPage::instance();
+ *
+ * Back-compat (still supported):
  *   new \AcrossAI_Main_Menu\SettingsPage();
+ *
+ * The class is bundled inside every AcrossAI consumer plugin via Composer and
+ * deduped process-wide by jetpack-autoloader. Autoloading dedupes the class
+ * definition, not construction — every consumer still runs their own boot
+ * call. The singleton below ensures that admin_menu hooks (and the shared
+ * renderer) are wired exactly once no matter how many consumers boot us.
  *
  * Registers:
  *   - "AcrossAI" top-level menu (slug: acrossai) — the Dashboard landing page
@@ -23,8 +32,20 @@ class SettingsPage {
 	const PARENT_SLUG   = 'acrossai';
 	const SETTINGS_SLUG = 'acrossai-settings';
 
-	/** @var SettingsPageRenderer|null Latest constructed renderer. */
-	private static $settings_renderer_instance = null;
+	/** @var self|null Shared instance — first construction wins for both `instance()` and `new`. */
+	private static $_instance = null;
+
+	/**
+	 * Returns the shared SettingsPage instance, constructing it on first call.
+	 * Preferred over `new SettingsPage()` — subsequent `new` calls short-circuit
+	 * without re-wiring hooks, but calling instance() directly is clearer.
+	 */
+	public static function instance(): self {
+		if ( null === self::$_instance ) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
+	}
 
 	/**
 	 * Returns the Settings page renderer so consumer plugins can call
@@ -33,7 +54,7 @@ class SettingsPage {
 	 * yet in this request.
 	 */
 	public static function get_settings_renderer(): ?SettingsPageRenderer {
-		return self::$settings_renderer_instance;
+		return self::$_instance ? self::$_instance->settings_renderer : null;
 	}
 
 	/** @var MenuRegistrar */
@@ -46,6 +67,12 @@ class SettingsPage {
 	private $settings_renderer;
 
 	public function __construct() {
+		if ( null !== self::$_instance ) {
+			// Legacy `new` path from a second consumer — first construction wins.
+			return;
+		}
+		self::$_instance = $this;
+
 		$this->dashboard_renderer = new DashboardRenderer();
 		$this->settings_renderer  = new SettingsPageRenderer();
 		$this->menu_registrar     = new MenuRegistrar(
@@ -54,8 +81,6 @@ class SettingsPage {
 			$this->dashboard_renderer,
 			$this->settings_renderer
 		);
-
-		self::$settings_renderer_instance = $this->settings_renderer;
 
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_parent' ] );
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_settings_submenu' ], 1000 );

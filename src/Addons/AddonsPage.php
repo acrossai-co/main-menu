@@ -54,10 +54,35 @@ class AddonsPage {
 	private $hook_suffix = null;
 
 	/**
+	 * Default AcrossAI-owned Freemius product used when a consumer plugin
+	 * doesn't pass its own `fs_product_id` / `fs_public_key`. This is the
+	 * shared "AcrossAI Add-ons" umbrella product — individual consumer
+	 * plugins with their own Freemius product SHOULD override by passing
+	 * `fs_product_id` and `fs_public_key` in $args.
+	 */
+	const DEFAULT_FS_PRODUCT_ID = '34418';
+	const DEFAULT_FS_PUBLIC_KEY = 'pk_d61a7ddb1a619f7697fbb4fc397b6';
+
+	/**
+	 * Process-wide guard so the Add-ons page hooks (AJAX / admin_post /
+	 * notices / assets / submenu registration) are wired exactly once no
+	 * matter how many consumer plugins boot AddonsPage in one request.
+	 * Freemius init still runs per consumer above this guard.
+	 *
+	 * @var bool
+	 */
+	private static $page_hooks_registered = false;
+
+	/**
 	 * @param string|null $consumer_main_file  Absolute path to the consumer plugin's main file (__FILE__).
-	 * @param array       $args                Required Freemius credentials + optional config:
-	 *                                           'fs_product_id'  (required) — Freemius product ID.
-	 *                                           'fs_public_key'  (required) — Freemius public key (pk_...).
+	 * @param array       $args                Optional Freemius credentials + optional config. When
+	 *                                          fs_product_id / fs_public_key are omitted, the shared
+	 *                                          AcrossAI-owned defaults (DEFAULT_FS_PRODUCT_ID /
+	 *                                          DEFAULT_FS_PUBLIC_KEY) are used. Consumer plugins with
+	 *                                          their own Freemius product SHOULD override by passing
+	 *                                          both keys.
+	 *                                           'fs_product_id'  (optional) — Freemius product ID. Defaults to DEFAULT_FS_PRODUCT_ID.
+	 *                                           'fs_public_key'  (optional) — Freemius public key (pk_...). Defaults to DEFAULT_FS_PUBLIC_KEY.
 	 *                                           'fs_slug'        (optional) — Freemius product slug; defaults to the submenu slug.
 	 *                                           'fs_menu'        (optional) — array of Freemius `menu` config overrides.
 	 *                                                                          Accepted boolean keys: `account`, `contact`,
@@ -75,8 +100,7 @@ class AddonsPage {
 	 *                                          AcrossAI main-menu parent ('acrossai'). Pass a custom slug
 	 *                                          only if you need the Add-ons page under a different menu.
 	 *
-	 * @throws \InvalidArgumentException If fs_product_id or fs_public_key are missing from $args.
-	 * @throws \RuntimeException         If WordPress version < 6.0, or no valid plugin main file is found.
+	 * @throws \RuntimeException If WordPress version < 6.0, or no valid plugin main file is found.
 	 */
 	public function __construct( ?string $consumer_main_file = null, array $args = [], string $parent_slug = 'acrossai' ) {
 		$this->assert_wp_version();
@@ -84,23 +108,32 @@ class AddonsPage {
 		$this->menu_slug          = sanitize_key( $parent_slug );
 		$this->consumer_main_file = $this->resolve_consumer_file( $consumer_main_file );
 
-		$fs_product_id = isset( $args['fs_product_id'] ) ? (string) $args['fs_product_id'] : '';
-		$fs_public_key = isset( $args['fs_public_key'] ) ? (string) $args['fs_public_key'] : '';
+		// fs_product_id / fs_public_key fall back to the shared AcrossAI-owned
+		// product so a consumer plugin can boot AddonsPage without registering
+		// its own Freemius product. Passing either key in $args overrides.
+		$fs_product_id = isset( $args['fs_product_id'] ) && '' !== $args['fs_product_id']
+			? (string) $args['fs_product_id']
+			: self::DEFAULT_FS_PRODUCT_ID;
+		$fs_public_key = isset( $args['fs_public_key'] ) && '' !== $args['fs_public_key']
+			? (string) $args['fs_public_key']
+			: self::DEFAULT_FS_PUBLIC_KEY;
 		$fs_slug       = isset( $args['fs_slug'] ) ? sanitize_key( $args['fs_slug'] ) : MenuRegistrar::SUBMENU_SLUG;
 		$fs_menu       = isset( $args['fs_menu'] ) && is_array( $args['fs_menu'] ) ? $args['fs_menu'] : array();
 		$fs_has_addons = ! empty( $args['fs_has_addons'] );
 
-		if ( '' === $fs_product_id || '' === $fs_public_key ) {
-			throw new \InvalidArgumentException(
-				'AddonsPage: fs_product_id and fs_public_key are required. ' .
-				"Pass them via \$args: new AddonsPage( __FILE__, [ 'fs_product_id' => '...', 'fs_public_key' => 'pk_...' ] )"
-			);
-		}
-
+		// Freemius must init for every consumer regardless of PAGE_ENABLED so
+		// per-product opt-in, licensing, and Account submenus keep working.
 		$fs_instance     = FreemiusInitializer::init( $this->consumer_main_file, $this->menu_slug, $fs_product_id, $fs_public_key, $fs_slug, $fs_menu, $fs_has_addons );
 		$this->fs_bridge = new FreemiusBridge( $fs_instance );
-		$this->notices   = new Notices();
-		$this->pending   = new PendingAddon();
+
+		if ( ! MenuRegistrar::PAGE_ENABLED ) {
+			// Feature-flag off: skip the page-level wiring. No submenu, no AJAX,
+			// no admin_post, no notices, no asset enqueue.
+			return;
+		}
+
+		$this->notices = new Notices();
+		$this->pending = new PendingAddon();
 
 		$button_state         = new ButtonState( $this->fs_bridge );
 		$this->renderer       = new PageRenderer( $this->fs_bridge, $button_state, $this->pending, $this->menu_slug );
@@ -115,8 +148,16 @@ class AddonsPage {
 		$this->boot();
 	}
 
-	/** Register all WordPress hooks. */
+	/**
+	 * Register all WordPress hooks — page-level only. Runs at most once per
+	 * process even when multiple consumers construct AddonsPage.
+	 */
 	private function boot(): void {
+		if ( self::$page_hooks_registered ) {
+			return;
+		}
+		self::$page_hooks_registered = true;
+
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register' ], 20 );
 		add_action( 'admin_menu', [ $this, 'capture_hook_suffix' ], 21 );
 		add_action( 'admin_init', [ $this->pending, 'maybe_handle_return' ] );

@@ -6,6 +6,19 @@ class MenuRegistrar {
 
 	const SUBMENU_SLUG = 'acrossai-addons';
 
+	/**
+	 * Single source of truth for the Add-ons page feature flag.
+	 *
+	 * When false: no submenu is registered, and AddonsPage skips wiring its
+	 * AJAX / admin_post / notices / assets hooks entirely (Freemius still
+	 * initializes so per-product opt-in and licensing keep working).
+	 *
+	 * When true: the "Add-ons" submenu appears under the parent and all page
+	 * hooks are registered, gated by the process-wide once-guard below so a
+	 * multi-consumer install still wires them exactly once.
+	 */
+	const PAGE_ENABLED = false;
+
 	/** @var bool Process-wide guard so the Add-ons submenu is registered at most once. */
 	private static $registered = false;
 
@@ -25,6 +38,9 @@ class MenuRegistrar {
 
 	/** admin_menu callback. */
 	public function register(): void {
+		if ( ! self::PAGE_ENABLED ) {
+			return;
+		}
 		if ( self::$registered ) {
 			// Another consumer plugin already added the Add-ons submenu under this parent.
 			// Subsequent plugins still register their Freemius config and contribute add-ons;
@@ -32,15 +48,14 @@ class MenuRegistrar {
 			return;
 		}
 
-		// Add-ons submenu temporarily disabled.
-		// $this->hook_suffix = add_submenu_page(
-		// 	$this->parent_slug,
-		// 	__( 'Add-ons', 'acrossai' ),
-		// 	__( 'Add-ons', 'acrossai' ),
-		// 	'install_plugins',
-		// 	self::SUBMENU_SLUG,
-		// 	[ $this->renderer, 'render' ]
-		// );
+		$this->hook_suffix = add_submenu_page(
+			$this->parent_slug,
+			__( 'Add-ons', 'acrossai' ),
+			__( 'Add-ons', 'acrossai' ),
+			'install_plugins',
+			self::SUBMENU_SLUG,
+			[ $this->renderer, 'render' ]
+		);
 
 		self::$registered = true;
 	}

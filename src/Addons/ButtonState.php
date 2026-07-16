@@ -11,9 +11,6 @@ class ButtonState {
 	/** @var FreemiusBridge */
 	private $fs_bridge;
 
-	/** @var array<string,array>|null Memoized get_plugins() result. */
-	private static $installed_plugins = null;
-
 	public function __construct( FreemiusBridge $fs_bridge ) {
 		$this->fs_bridge = $fs_bridge;
 	}
@@ -31,7 +28,7 @@ class ButtonState {
 	// -------------------------------------------------------------------------
 
 	private function state_for_free( array $addon ): array {
-		$plugin_file = $this->find_installed_file( $addon['slug'] );
+		$plugin_file = PluginFileLocator::for_addon( $addon );
 
 		if ( null === $plugin_file ) {
 			return [
@@ -65,7 +62,7 @@ class ButtonState {
 	}
 
 	private function state_for_paid( array $addon ): array {
-		$plugin_file   = $this->find_installed_file( $addon['slug'] );
+		$plugin_file   = PluginFileLocator::for_addon( $addon );
 		$is_registered = $this->fs_bridge->is_registered();
 		$price_label   = $addon['price_label'] ?? '$0';
 
@@ -116,27 +113,4 @@ class ButtonState {
 		];
 	}
 
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Finds the plugin file (e.g. 'plugin-slug/plugin-slug.php') for an installed
-	 * plugin whose folder name starts with $slug. Returns null if not installed.
-	 * Uses a per-request memoized get_plugins() call.
-	 */
-	private function find_installed_file( string $slug ): ?string {
-		if ( null === self::$installed_plugins ) {
-			if ( ! function_exists( 'get_plugins' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/plugin.php';
-			}
-			self::$installed_plugins = get_plugins();
-		}
-
-		foreach ( array_keys( self::$installed_plugins ) as $plugin_file ) {
-			$folder = explode( '/', $plugin_file )[0];
-			if ( $folder === $slug ) {
-				return $plugin_file;
-			}
-		}
-		return null;
-	}
 }
