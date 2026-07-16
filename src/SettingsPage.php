@@ -71,6 +71,12 @@ class SettingsPage {
 	/** @var SettingsPageRenderer */
 	private $settings_renderer;
 
+	/** @var AddonsInstaller */
+	private $addons_installer;
+
+	/** @var AddonsAjaxHandlers */
+	private $addons_ajax;
+
 	public function __construct() {
 		if ( null !== self::$_instance ) {
 			// Legacy `new` path from a second consumer — first construction wins.
@@ -79,7 +85,9 @@ class SettingsPage {
 		self::$_instance = $this;
 
 		$this->dashboard_renderer = new DashboardRenderer();
-		$this->addons_renderer    = new AddonsPageRenderer();
+		$this->addons_installer   = new AddonsInstaller();
+		$this->addons_renderer    = new AddonsPageRenderer( $this->addons_installer );
+		$this->addons_ajax        = new AddonsAjaxHandlers( $this->addons_installer, $this->addons_renderer );
 		$this->settings_renderer  = new SettingsPageRenderer();
 		$this->menu_registrar     = new MenuRegistrar(
 			self::PARENT_SLUG,
@@ -93,5 +101,9 @@ class SettingsPage {
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_parent' ] );
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_addons_submenu' ], 20 );
 		add_action( 'admin_menu', [ $this->menu_registrar, 'register_settings_submenu' ], 1000 );
+
+		add_action( 'wp_ajax_acrossai_addons_install',    [ $this->addons_ajax, 'install' ] );
+		add_action( 'wp_ajax_acrossai_addons_activate',   [ $this->addons_ajax, 'activate' ] );
+		add_action( 'wp_ajax_acrossai_addons_deactivate', [ $this->addons_ajax, 'deactivate' ] );
 	}
 }
