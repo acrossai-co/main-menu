@@ -1,0 +1,268 @@
+// WPB Add-ons Page styles
+// Uses WP admin colour tokens where possible.
+
+$card-gap:        20px;
+$card-radius:     4px;
+$accent:          #2271b1; // WP admin blue
+$accent-hover:    #135e96;
+$badge-free-bg:   #00a32a;
+$highlight-color: #f0f6fc;
+$highlight-border: #2271b1;
+
+// ---- Page wrap -------------------------------------------------------
+
+.acrossai-addons-page {
+	max-width: 1200px;
+
+	h1 {
+		margin-bottom: 16px;
+	}
+}
+
+// ---- Banner (returning customer) ------------------------------------
+
+.acrossai-addons-page__banner {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	background: #f0f6fc;
+	border: 1px solid #c3d9ed;
+	border-left: 4px solid $accent;
+	padding: 12px 16px;
+	margin-bottom: 20px;
+	border-radius: $card-radius;
+
+	p {
+		margin: 0;
+		flex: 1;
+	}
+}
+
+// ---- Filter tabs -----------------------------------------------------
+
+.acrossai-addons-page__filters {
+	display: flex;
+	gap: 0;
+	margin-bottom: 20px;
+	border-bottom: 2px solid #dcdcde;
+
+	[role="tab"] {
+		background: none;
+		border: none;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -2px;
+		padding: 8px 16px;
+		cursor: pointer;
+		font-size: 14px;
+		color: #50575e;
+		transition: color 0.15s, border-color 0.15s;
+
+		&:hover,
+		&:focus-visible {
+			color: $accent;
+			outline: 2px solid $accent;
+			outline-offset: 2px;
+		}
+
+		&.is-active {
+			color: $accent;
+			border-bottom-color: $accent;
+			font-weight: 600;
+		}
+	}
+}
+
+// ---- Add-ons grid ----------------------------------------------------
+
+.acrossai-addons-page__grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: $card-gap;
+
+	@media (max-width: 960px) {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	@media (max-width: 600px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+// ---- Card ------------------------------------------------------------
+
+.acrossai-addons-page__card {
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: $card-radius;
+	padding: 20px;
+	transition: box-shadow 0.15s;
+
+	&:hover {
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	}
+
+	&--highlight {
+		background: $highlight-color;
+		border-color: $highlight-border;
+		box-shadow: 0 0 0 2px $highlight-border;
+	}
+}
+
+.acrossai-addons-page__card-icon {
+	margin-bottom: 12px;
+
+	img {
+		width: 72px;
+		height: 72px;
+		border-radius: 4px;
+		display: block;
+	}
+}
+
+.acrossai-addons-page__card-body {
+	flex: 1;
+}
+
+.acrossai-addons-page__card-title {
+	font-size: 15px;
+	margin: 0 0 8px;
+
+	a {
+		text-decoration: none;
+		color: #1d2327;
+
+		&:hover { color: $accent; }
+	}
+}
+
+.acrossai-addons-page__card-desc {
+	font-size: 13px;
+	color: #50575e;
+	margin: 0 0 12px;
+	line-height: 1.5;
+}
+
+.acrossai-addons-page__price {
+	display: inline-block;
+	font-weight: 600;
+	color: #1d2327;
+	font-size: 13px;
+	margin-bottom: 12px;
+}
+
+.acrossai-addons-page__badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	padding: 2px 8px;
+	border-radius: 2px;
+	margin-bottom: 12px;
+
+	&--free {
+		background: $badge-free-bg;
+		color: #fff;
+	}
+}
+
+.acrossai-addons-page__card-meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+
+	.acrossai-addons-page__badge,
+	.acrossai-addons-page__price {
+		margin-bottom: 0;
+	}
+}
+
+.acrossai-addons-page__source {
+	display: inline-flex;
+	align-items: center;
+	font-size: 11px;
+	font-weight: 500;
+	border-radius: 10px;
+	padding: 2px 8px;
+	border: 1px solid #dcdcde;
+	background: #f6f8fa;
+	color: #50575e;
+
+	&--wordpress-org {
+		color: #0073aa;
+		border-color: #b3d9f0;
+		background: #f0f8ff;
+	}
+
+	&--github {
+		color: #24292f;
+		border-color: #d0d7de;
+		background: #f6f8fa;
+	}
+
+	&--freemius {
+		color: #6a4c93;
+		border-color: #d4bbf0;
+		background: #f8f0ff;
+	}
+}
+
+// ---- Card footer + buttons ------------------------------------------
+
+.acrossai-addons-page__card-footer {
+	margin-top: auto;
+	padding-top: 12px;
+}
+
+.acrossai-addons-page__btn {
+	width: 100%;
+	text-align: center;
+	justify-content: center;
+
+	&--active {
+		border-color: #a0aeb8;
+		color: #50575e;
+
+		&:hover {
+			border-color: #d63638;
+			color: #d63638;
+			background: #fff;
+		}
+	}
+
+	&--confirmed {
+		background: #00a32a;
+		border-color: #00a32a;
+		color: #fff;
+		cursor: default;
+		pointer-events: none;
+
+		&:hover {
+			background: #00a32a;
+			border-color: #00a32a;
+			color: #fff;
+		}
+	}
+
+	&:focus-visible {
+		outline: 2px solid $accent;
+		outline-offset: 2px;
+	}
+
+	&[aria-busy="true"] {
+		opacity: 0.7;
+		cursor: wait;
+	}
+}
+
+.acrossai-addons-page__card-error {
+	margin-top: 8px;
+	font-size: 12px;
+	color: #d63638;
+
+	&[hidden] { display: none; }
+}
