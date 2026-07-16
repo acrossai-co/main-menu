@@ -9,7 +9,8 @@
     },
     "autoload": {
         "psr-4": {
-            "AcrossAI_Main_Menu\\": "src/"
+            "AcrossAI_Main_Menu\\": "src/",
+            "AcrossAI_Addon\\": "src/Addons/"
         }
     },
     "config": {
